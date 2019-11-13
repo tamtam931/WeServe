@@ -228,35 +228,68 @@ class Admin extends CI_Controller {
 
     public function add_schedule() {
 
-        $user_id = $this->input->post('logged_user');
-        $property = $this->input->post('property');
-        $unit_number = $this->input->post('unit_number');
-        $parking = $this->input->post('parking');
-        $customer_name = $this->input->post('customer_name');
-        $date = strtotime($this->input->post('selected_dt'));
-        $time = $this->input->post('schedule_time');
+        if ($this->input->post()) {
+            
+            $validation = array('success' => 'false','messages' => array());
+            $this->form_validation->set_rules('logged_user','Logged User','required|trim');
+            $this->form_validation->set_rules('property','Property','required|trim');
+            $this->form_validation->set_rules('unit_number','Unit Number','required|trim');
+            $this->form_validation->set_rules('parking','Parking','required|trim');
+            $this->form_validation->set_rules('customer_name','Customer Name','required|trim');
+            $this->form_validation->set_rules('selected_dt','Selected Date','required|trim');
+            $this->form_validation->set_error_delimiters('<p class="text-danger">','</p>');
+
+            if ($this->form_validation->run() == TRUE) {
+                
+
+                $user_id = $this->input->post('logged_user');
+                $property = $this->input->post('property');
+                $unit_number = $this->input->post('unit_number');
+                $parking = $this->input->post('parking');
+                $customer_name = $this->input->post('customer_name');
+                $date = strtotime($this->input->post('selected_dt'));
+                $time = $this->input->post('schedule_time');
 
 
-        $new_date = date("Y/m/d H:i:s", $date);
-        $dt = new DateTime($new_date);
-        $new_dt = $dt->setTime(intval($time), 00);
+                $new_date = date("Y/m/d H:i:s", $date);
+                $dt = new DateTime($new_date);
+                $new_dt = $dt->setTime(intval($time), 00);
 
-        $insert_data = array(
-            'property' =>  $property,
-            'unit_number' => $unit_number,
-            'parking_number' => $parking,
-            'customer_name' => $customer_name,
-            'schedule' => $new_dt->format('Y-m-d H:i:s')
-        );
+                $insert_data = array(
+                    'property' =>  $property,
+                    'unit_number' => $unit_number,
+                    'parking_number' => $parking,
+                    'customer_name' => $customer_name,
+                    'schedule' => $new_dt->format('Y-m-d H:i:s')
+                );
 
-        $insert_id = $this->Admin_model->add_turnover_schedule($insert_data);
+                $insert_id = $this->Admin_model->add_turnover_schedule($insert_data);
 
-        if($insert_id > 0) {
-            echo "<script type='text/javascript'>alert('SMS and Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.');</script>";
+                if($insert_id > 0) {
+
+                    $validation['success'] = 'true';
+                    $validation['messages']['messagebox'] = "SMS and Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.";
+                }   
+                             
+            } else {
+
+                foreach ($this->input->post() as $key => $value) {
+                    
+                    $validation['messages'][$key] = form_error($key);
+                }                
+            }
+
+            $validation['key'] = 'addSchedule';
+            $validation['button_value'] = 'Save';
+
+            echo json_encode($validation);
+
+        } else {
+
             redirect('admin/schedule/', 'refresh');
         }
 
-
+        
 
 
     }

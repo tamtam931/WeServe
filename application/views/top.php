@@ -33,6 +33,14 @@
 <div class="ajax_loader hidden-loader">
   <i style="font-size: 100px;" class="fa fa-spinner fa-spin"></i>
 </div>
-
+<!-- 
+  Message/Alert box 
+  Added: Ben Zarmaynine E. Obra
+  Date: 11-13-19
+-->
+<div class="container">
+    <div class="messagebox alert alert-success alert-dismissible fade show" style="display: none"></div>
+</div>
+<!-- End -->
 
 

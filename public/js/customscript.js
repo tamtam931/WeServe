@@ -125,7 +125,7 @@ $(document).ready(function(){
 				console.log($response);
 				container = $response.filter('.main-container').html();
 				$(".main-container").html(container);
-				declare_calendar();				
+				fullCalendar_init('#calendar');				
 			}
 
 		});   	

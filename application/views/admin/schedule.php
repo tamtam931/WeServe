@@ -1,5 +1,5 @@
 <?= $this->load->view('top', '', TRUE) ?>
-<div class="container py-5 mb5">
+<div class="main-container container py-5 mb5">
   <h3 class="mb-3">TURN OVER SCHEDULE</h3>
  <?php $ticket_id = $this->uri->segment(3); $detail='';?>
  <?php if($ticket_id) :?>
@@ -14,14 +14,14 @@
 	        			<div class="col-md-4 mb-3">
 				            <label for="property">Property <span style="color:red;">*</span></label>
 
-				            <select class="custom-select d-block w-100" id="property" name="property" required>
+				            <select class="custom-select d-block w-100" id="property" name="property">
 				              	<option value=""> -- Please Choose --</option>
 				              	<option value="TEM" <?php if($detail){if($detail->project == "TEM"){echo 'selected';}} ?>> The Estate Makati</option>
 				            </select>
 				        </div>
 				        <div class="col-md-4 mb-3">
 				            <label for="unit_number">Unit Number <span style="color:red;">*</span></label>
-				            <select class="custom-select d-block w-100" id="unit_number" name="unit_number" required>
+				            <select class="custom-select d-block w-100" id="unit_number" name="unit_number">
 				              	<option value=""> -- Please Choose --</option>
 				              	<option value="8A" <?php if($detail){if(($detail->unit_number . $detail->unit_desc) == "8A"){echo 'selected';}} ?>> 8A </option>
 				            </select>
@@ -30,14 +30,14 @@
 			    	<div class="row">
 			    		<div class="col-md-4 mb-3">
 				            <label for="parking">Parking Number <span style="color:red;">*</span></label>
-				            <select class="custom-select d-block w-100" id="parking" name="parking" required>
+				            <select class="custom-select d-block w-100" id="parking" name="parking">
 				              	<option value=""> -- Please Choose --</option>
 				              	<option value="B6135 / B6136" <?php if($detail){if($detail->parking_number == "B6135 / B6136"){echo 'selected';}} ?>> B6135 / B6136 </option>
 				            </select>
 				        </div>
 				        <div class="col-md-4 mb-3">
 				            <label for="customer_name">Customer Name <span style="color:red;">*</span></label>
-				            <select class="custom-select d-block w-100" id="customer_name" name="customer_name" required>
+				            <select class="custom-select d-block w-100" id="customer_name" name="customer_name">
 				              	<option value=""> -- Please Choose --</option>
 				              	<option value="Erika Rabara" <?php if($detail){ if(($detail->customer_name) == "ERIKA BARBARA"){echo 'selected';}} ?>> ERIKA BARBARA </option>
 				            </select>
@@ -60,7 +60,7 @@
 
 				                </div>
 				               <div class="modal-footer">
-							        <button type="submit" class="btn btn-dark">Save</button>
+							        <input type="submit" name="Save" class="add_schedule btn btn-dark" value="Save">
 							        <button type="button" class="btn btn-outline-dark" data-dismiss="modal">Cancel</button>
 							     </div>
 				            </div>
@@ -78,8 +78,8 @@
 		</div> 
 
   	</div>
-  </div>
-
+</div>
+<a href="<?= base_url('admin/schedule') ?>"><button class="btn btn-sm" id="load_page" style="display: none">Go</button></a>
 
 <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>	
 <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.2/moment.min.js"></script>
@@ -87,10 +87,17 @@
 <script type="text/javascript" src="http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script type="text/javascript" src="<?= base_url('public/js/customscript.js') ?>"></script>
 <script>
 $(document).ready(function() {
 
-    $('#calendar').fullCalendar({
+	fullCalendar_init('#calendar');
+
+});
+
+function fullCalendar_init(element){
+
+    $(element).fullCalendar({
         header: {
             left: '',
             center: 'prev title next',
@@ -141,8 +148,8 @@ $(document).ready(function() {
 	         },
 	      ]
 
-    });
-});
+    });	
+}
 
 function calendar_ajax(date_val){
 	$ajaxData = $.ajax({
