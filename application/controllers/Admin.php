@@ -6,15 +6,15 @@ class Admin extends CI_Controller {
     public $user_id = '';
     public $role_id = '';
 
-	public function __construct() {
+    public function __construct() {
         parent::__construct();
         $this->user_id = user('id');
         $this->role_id = user('role');
         $this->load->library('user_agent');
     }
-	public function index($data = null) {
+    public function index($data = null) {
       
-	}
+    }
 
    public function main() {
         $this->load->view('header');

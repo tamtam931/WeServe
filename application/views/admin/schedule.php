@@ -1,7 +1,7 @@
 <?= $this->load->view('top', '', TRUE) ?>
 <div class="container py-5 mb5">
   <h3 class="mb-3">TURN OVER SCHEDULE</h3>
- <?php $ticket_id = $this->uri->segment(3); ?>
+ <?php $ticket_id = $this->uri->segment(3); $detail='';?>
  <?php if($ticket_id) :?>
 	<?php $detail = $this->Admin_model->get_ticket_by_id($this->uri->segment(3)); ?>
   <?php endif; ?>
@@ -16,14 +16,14 @@
 
 				            <select class="custom-select d-block w-100" id="property" name="property" required>
 				              	<option value=""> -- Please Choose --</option>
-				              	<option value="TEM" <?php if($detail->project == "TEM"){echo 'selected';} ?>> The Estate Makati</option>
+				              	<option value="TEM" <?php if($detail){if($detail->project == "TEM"){echo 'selected';}} ?>> The Estate Makati</option>
 				            </select>
 				        </div>
 				        <div class="col-md-4 mb-3">
 				            <label for="unit_number">Unit Number <span style="color:red;">*</span></label>
 				            <select class="custom-select d-block w-100" id="unit_number" name="unit_number" required>
 				              	<option value=""> -- Please Choose --</option>
-				              	<option value="8A" <?php if(($detail->unit_number . $detail->unit_desc) == "8A"){echo 'selected';} ?>> 8A </option>
+				              	<option value="8A" <?php if($detail){if(($detail->unit_number . $detail->unit_desc) == "8A"){echo 'selected';}} ?>> 8A </option>
 				            </select>
 				        </div>
 	        		</div>
@@ -32,14 +32,14 @@
 				            <label for="parking">Parking Number <span style="color:red;">*</span></label>
 				            <select class="custom-select d-block w-100" id="parking" name="parking" required>
 				              	<option value=""> -- Please Choose --</option>
-				              	<option value="B6135 / B6136" <?php if($detail->parking_number == "B6135 / B6136"){echo 'selected';} ?>> B6135 / B6136 </option>
+				              	<option value="B6135 / B6136" <?php if($detail){if($detail->parking_number == "B6135 / B6136"){echo 'selected';}} ?>> B6135 / B6136 </option>
 				            </select>
 				        </div>
 				        <div class="col-md-4 mb-3">
 				            <label for="customer_name">Customer Name <span style="color:red;">*</span></label>
 				            <select class="custom-select d-block w-100" id="customer_name" name="customer_name" required>
 				              	<option value=""> -- Please Choose --</option>
-				              	<option value="Erika Rabara" <?php if(($detail->customer_name) == "ERIKA BARBARA"){echo 'selected';} ?>> ERIKA BARBARA </option>
+				              	<option value="Erika Rabara" <?php if($detail){ if(($detail->customer_name) == "ERIKA BARBARA"){echo 'selected';}} ?>> ERIKA BARBARA </option>
 				            </select>
 				        </div>
 			    	</div>

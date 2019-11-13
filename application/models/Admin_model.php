@@ -63,6 +63,16 @@ class Admin_model extends CI_Model {
       return $query->row();
     }
 
+    public function get_all_handover_associate() {
+       $this->db->select("*, tbl_users.id AS user_id"); 
+       $this->db->from('tbl_users');
+       $this->db->join('tbl_position', 'tbl_users.position = tbl_position.id');
+       $this->db->where('tbl_users.position', 10);
+       $query = $this->db->get();
+       return $query->result();
+    }
+
+
      public function deactivate_user($user_id) {
         $this->db->set('status', 0);
         $this->db->set('password', '');
@@ -110,6 +120,17 @@ class Admin_model extends CI_Model {
       return $query->result();
     }
 
+    public function get_all_unit_floors_by_project_tower($project, $tower) {
+      $this->db->distinct();
+      $this->db->select("unit_number"); 
+      $this->db->from('tbl_units');
+      $this->db->where('project', $project);
+      $this->db->where('tower', $tower);
+      $this->db->order_by('unit_number', 'ASC');
+      $query = $this->db->get();
+      return $query->result();
+    }
+
     public function get_units_per_floor($unit_floor) {
       $this->db->select("*"); 
       $this->db->from('tbl_units');
@@ -140,6 +161,18 @@ class Admin_model extends CI_Model {
     }
 
 
+    public function get_turnover_schedule_distinct(){
+      // $this->db->distinct('schedule');
+      $this->db-> select("*");
+      $this->db-> from('tbl_turnover_schedule');
+      $this->db->where('status', 0); //active
+      $this->db->order_by('schedule', 'ASC'); 
+      $this->db->group_by('schedule');
+      $query = $this->db->get();
+      return $query->result();
+
+    }
+
     public function get_turnover_schedule(){
       $this->db-> select("*");
       $this->db-> from('tbl_turnover_schedule');
@@ -155,6 +188,26 @@ class Admin_model extends CI_Model {
       $this->db-> select("*");
       $this->db-> from('tbl_turnover_schedule');
       $this->db->where('status', 0); //active
+      $this->db->like('schedule', $date);
+      $this->db->order_by('schedule', 'ASC'); 
+      $query = $this->db->get();
+      return $query->result();
+    }
+
+    public function get_schedules_per_exact_datetime($date) {
+      $this->db-> select("*");
+      $this->db-> from('tbl_turnover_schedule');
+      $this->db->where('status', 0); //active
+      $this->db->where('schedule', $date);
+      $query = $this->db->get();
+      return $query->result();
+    }
+
+    public function get_schedules_per_date_handover($date, $handover_associate) {
+      $this->db-> select("*");
+      $this->db-> from('tbl_turnover_schedule');
+      $this->db->where('status', 0); //active
+      $this->db->where('assigned_to', $handover_associate);
       $this->db->like('schedule', $date);
       $this->db->order_by('schedule', 'ASC'); 
       $query = $this->db->get();

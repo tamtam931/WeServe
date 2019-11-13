@@ -1,13 +1,13 @@
 <?php 
 
 $time = array(); $reserved1 = ''; $reserved2 = ''; $reserved3 = ''; $reserved4 = '';
-	$default_time = array('9','11','14', '16');
+  $default_time = array('9','11','14', '16');
 
-	$scheds = $this->Admin_model->get_schedules_per_date($sched);
-		foreach($scheds as $sched) :
-			$time[] = date("H",strtotime($sched->schedule));
-		endforeach;
-	 ?>
+  $scheds = $this->Admin_model->get_schedules_per_date($sched);
+    foreach($scheds as $sched) :
+      $time[] = date("H",strtotime($sched->schedule));
+    endforeach;
+   ?>
 <div class="d-block my-3">
   <div class="custom-control custom-radio">
 
@@ -31,5 +31,5 @@ $time = array(); $reserved1 = ''; $reserved2 = ''; $reserved3 = ''; $reserved4 =
         <label class="custom-control-label" for="4pm"> 4PM</label>
         <span style="color:red;font-weight: 600;"><?= $reserved4; ?></span><br>
       </div>
-	<?php endif; ?>
+  <?php endif; ?>
 </div>
