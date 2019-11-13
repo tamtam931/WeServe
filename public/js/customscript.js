@@ -3,7 +3,7 @@
 	Custom Script for WeServe
 	Author: Ben Zarmaynine E. Obra / Viel Parale
 	Added: 11-12-19
-
+	test
 **/
 
 $(document).ready(function(){
