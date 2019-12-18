@@ -204,6 +204,7 @@ function check_availability(available,formData) {
 		},
 		dataType:'json',
 		success: function(data){
+			console.log(data);
 			$('#project').val(data.project);
 			$('#assign_to').val(data.assigned_to);
 			$('#for9').text(data.reserved1);

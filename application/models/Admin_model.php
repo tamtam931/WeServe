@@ -931,7 +931,7 @@ class Admin_model extends CI_Model {
     $this->db->select("id");
     $this->db->from("tbl_projects");
     $this->db->where('project_code' , $project_code);
-    return $this->db->get()->row();
+    return $this->db->get()->result();
   }
 
   public function get_distance_project($origin , $distination){
@@ -939,7 +939,7 @@ class Admin_model extends CI_Model {
     $this->db->from("tbl_project_distance");
     $this->db->where("project_from" , $origin);
     $this->db->where("project_to" , $distination);
-    return $this->db->get()->row();    
+    return $this->db->get()->result();    
   }
 
   //For Jobs

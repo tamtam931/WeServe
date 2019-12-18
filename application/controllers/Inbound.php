@@ -243,10 +243,6 @@ class Inbound extends CI_Controller {
 
 
 
-
-
-
-
             $data = array(
                 'sched' => $sched,
                 'avail1' => $avail1,
@@ -465,7 +461,7 @@ class Inbound extends CI_Controller {
         $availability['time'] = $time;
         $availability['data'] = $new_dt->format('Y-m-d H:i:s');
         echo json_encode($availability);
-    }
+     }
 
     public function distance($project_code , $distination){
         //Get the Project id of the hand over assoc sched on the user selected date.
@@ -487,12 +483,18 @@ class Inbound extends CI_Controller {
                 $project_code = strtok($ticket_number, '-');
                 //Get the Project id of the hand over assoc sched on the user selected date.
                 $project_id_of_assoc_sched_assign = $this->Admin_model->get_project_id_assoc($project_code);
-                //Get the project if of unit owner. 
                 $assoc_distination = $this->Admin_model->get_project_id_assoc($project_distination);
-                //Get the distance base on the project id.
-                $distance_project = $this->Admin_model->get_distance_project($project_id_of_assoc_sched_assign->id , $assoc_distination->id);   
-                $distance = $distance_project->distance;
-                return $distance;
+                foreach($project_id_of_assoc_sched_assign as $data1){
+                    $id = $data1->id;
+                    foreach($assoc_distination as $data2){
+                        $id2 = $data2->id;
+                        $distance_project = $this->Admin_model->get_distance_project($id , $id2);   
+                        foreach($distance_project as $data_dis){
+                            $distance = $data_dis->distance;
+                            return $distance;
+                        }
+                    }
+                }
             }
         }else{
             return $distance;
@@ -577,7 +579,7 @@ class Inbound extends CI_Controller {
             // EMAIL/ SMS TO OUTBOUND
 
             $message = "THE TICKET NUMBER " .$ticket_number. " HAS BEEN ASSIGNED TO YOU. CLICK HERE FOR MORE INFO" .base_url('/outbound/ticket_details/'.$insert_id);
-            $return_email = $this->send_email($detail->email_address, 'UNIT TURNOVER SCHEDULE', $message);
+            //$return_email = $this->send_email($detail->email_address, 'UNIT TURNOVER SCHEDULE', $message);
 
             // EMAIL/SMS TO UNIT OWNER
             $message = "THIS IS A SAMPLE EMAIL NOTIFICATION SUBJECT TO CHANGE";
