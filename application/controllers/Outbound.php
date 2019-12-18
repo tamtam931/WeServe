@@ -186,11 +186,11 @@ class Outbound extends CI_Controller {
             // EMAIL/ SMS TO OUTBOUND
 
             $message = "THE TICKET NUMBER " .$ticket_number. " HAS BEEN ASSIGNED TO YOU. CLICK HERE FOR MORE INFO" .base_url('/outbound/ticket_details/'.$insert_id);
-            $return_email = $this->send_email($detail->email_address, 'UNIT TURNOVER SCHEDULE', $message);
+            //$return_email = $this->send_email($detail->email_address, 'UNIT TURNOVER SCHEDULE', $message);
 
             // EMAIL/SMS TO UNIT OWNER
             $message = "THIS IS A SAMPLE EMAIL NOTIFICATION SUBJECT TO CHANGE";
-            $return_email = $this->send_email($detail->email_address, 'UNIT TURNOVER SCHEDULE', $message);
+            //$return_email = $this->send_email($detail->email_address, 'UNIT TURNOVER SCHEDULE', $message);
             $return_sms = $this->send_sms($detail->mobile_number, $message);
             if($return_email == true) { // && $return_sms == true
                 echo "<script type='text/javascript'>alert('SMS and Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.');</script>";
@@ -233,10 +233,10 @@ class Outbound extends CI_Controller {
                   $diff = array_diff($associates, $db_associates);
 
                   // disable input without available handover associate left
-                  if(!$diff && in_array('9',$time)) { $reserved1 = 'NOT AVAILABLE'; $avail1= 'false'; } 
-                  elseif(!$diff && in_array('11',$time)) { $reserved2 = 'NOT AVAILABLE'; $avail2='false';} 
-                  elseif(!$diff && in_array('14',$time)) { $reserved3 = 'NOT AVAILABLE'; $avail3='false';} 
-                  elseif(!$diff && in_array('16',$time)) { $reserved4 = 'NOT AVAILABLE'; $avail4='false';} 
+                  //if(!$diff && in_array('9',$time)) { $reserved1 = 'NOT AVAILABLE'; $avail1= 'false'; } 
+                  //elseif(!$diff && in_array('11',$time)) { $reserved2 = 'NOT AVAILABLE'; $avail2='false';} 
+                  //elseif(!$diff && in_array('14',$time)) { $reserved3 = 'NOT AVAILABLE'; $avail3='false';} 
+                  //elseif(!$diff && in_array('16',$time)) { $reserved4 = 'NOT AVAILABLE'; $avail4='false';} 
                 endforeach;
 
                 

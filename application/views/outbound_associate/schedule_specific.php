@@ -10,10 +10,11 @@
   	<div class="row">
   		<div class="col-md-12">
 	    	<div id="turnover_schedule">
-		    	<form action="<?= base_url('outbound/add_schedule'); ?>" method="post" role="form" class="needs-validation">
+		    	<form action="<?= base_url('outbound/add_schedule_available'); ?>" method="post" role="form" class="needs-validation">
 		    		<input type="hidden" class="form-control" id="logged_user" name = "logged_user" value="<?= user('id'); ?>">
 		    		<input type="hidden" class="form-control" id="customer_number" name = "customer_number" value="<?= $detail->customer_number?>">
 		    		<input type="hidden" class="form-control" id="project" name = "project" value="<?= $detail->project_code?>">
+					<input type="hidden" class="form-control" id="assign_to" name = "assign_to" value="">
 	        		<div class="row">
 	        			<div class="col-md-4 mb-3">
 				            <label for="property">Property</label>
@@ -215,6 +216,7 @@ function check_availability(available,formData) {
 					url: "<?= base_url('admin/add_schedule_logs') ?>",
 					method: "POST",
 					data: {data : formData},
+					dataType:'json',
 					success:function(data){
 						//$('#modalBody').html(data);
 					},
