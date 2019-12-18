@@ -11,12 +11,12 @@
 			    </div>
   				<div class="col-md-4 mb-3">
 		            <label for="customer_num">Customer Number</label>
-		            <input type="text" class="form-control" id="customer_num" name="customer_num" placeholder="" value="12345" readonly>
+		            <input type="text" class="form-control" id="customer_num" name="customer_num" placeholder="" value="<?= $ticket_details->customer_number ?>" readonly>
 			    </div>
 
 			    <div class="col-md-4 mb-3">
 		            <label for="customer_name">Customer Name</label>
-		            <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="" value="XXX YYYY" readonly>
+		            <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="" value="<?= $ticket_details->customer_name ?>" readonly>
 			    </div>
 
 			    <div class="col-md-4 mb-3">

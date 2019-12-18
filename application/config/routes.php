@@ -50,16 +50,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |		my-controller/my-method	-> my_controller/my_method
 */
 $route['default_controller'] = 'auth';
+
 $route['auth'] = 'Auth/logout';
 $route['auth/login'] = 'Auth/login';
 $route['admin/main/:num'] = 'Admin/main';
 $route['admin/check_username'] = 'Admin/check_username';
 $route['admin/ticket_details/:num'] = 'Admin/ticket_details';
 $route['admin/turnover_schedule/:num'] = 'Admin/schedule';
-
+$route['admin/buyer_details/:num'] = 'Admin/buyer_details';
 $route['admin/get_value_edit_area/'] = 'Admin/get_value_edit_area';
-
 $route['admin/get_value_edit_area_list/'] = 'Admin/get_value_edit_area_list';
+
+$route['handover/acceptance_page/:any/:any'] = 'Handover/acceptance_page';
 
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;

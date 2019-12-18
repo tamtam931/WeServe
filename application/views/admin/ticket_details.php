@@ -43,12 +43,12 @@
 				    		<b>Turnover Schedule: </b> December 4, 2019 9:00 AM 
 				    	</div>
 				    </p>
-
+<!-- 
 				    <a href="<?= base_url('admin/turnover_process/'.$ticket_details->ticket_id); ?>" class="btn btn-dark">Turnover Process</a>
 
 				    <a href="<?= base_url('admin/turnover_schedule/'.$ticket_details->ticket_id); ?>" class="btn btn-dark">Turnover Schedule</a>
 
-					<button type="button" class="btn btn-outline-dark">No Show</button>
+					<button type="button" class="btn btn-outline-dark">No Show</button> -->
 				  </div>
 				</div>
 		  	</div>
@@ -106,7 +106,7 @@
 						    <div class="col-md-12">
 						    	<div class="form-group">
 						    		<label for="file_upload">UPLOAD</label>
-						            <input type="file" accept="image/*" id="capture" name="capture_img" capture="camera">
+						            <input type="file"  id="capture" name="capture_img">
 						    	</div>
 						    </div>
 						</div>

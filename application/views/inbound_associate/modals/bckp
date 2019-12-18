@@ -1,0 +1,77 @@
+<?php 
+
+$time = array(); $associates = array();  $db_associates = array();
+$reserved1 = ''; $reserved2 = ''; $reserved3 = ''; $reserved4 = ''; $avail1='true'; $avail2='true'; $avail3='true'; $avail4='true';
+$default_time = array('9','11','14','16');
+$assign_to = '';
+  //$scheds = $this->Admin_model->get_schedules_per_date($sched);
+  $users = $this->Admin_model->get_all_handover_associate();
+  foreach ($users as $associate) {
+    $associates[] = $associate->user_id;
+  }
+  
+  $scheds = $this->Admin_model->get_schedules_per_date($sched);
+  if($scheds) {
+    // if with schedule, get all reserved associate per date
+    foreach($scheds as $sched) :
+ 
+    $datas = $this->Admin_model->get_schedules_per_exact_datetime($sched->schedule);
+
+    foreach($datas as $data) :
+        
+
+      $check_before = $this->Admin_model->get_schedules_per_exact_datetime_associate(date('Y-m-d H:i:s',strtotime('-2 hour',strtotime($sched->schedule))), $data->assigned_to);
+      $check_after = $this->Admin_model->get_schedules_per_exact_datetime_associate(date('Y-m-d H:i:s',strtotime('+2 hour',strtotime($sched->schedule))), $data->assigned_to);
+
+        
+      if($check_before) {
+        // compute distance
+        $distance = $this->Admin_model->get_project_distance_by_to_from($check_before->project_id, $check_before->project_id);
+        // less than to 10KM sample, can be changed
+        if($distance->distance < 10) {
+          // make time available
+          $time[] = date("H",strtotime('-2 hour',strtotime($sched->schedule)));
+          // assign to associate
+          $db_associates[] = $data->assigned_to;
+        }
+
+      } elseif(!$check_before) {
+        $time[] = date("H",strtotime($sched->schedule));
+        $db_associates[] = $data->assigned_to;
+      }
+
+      if($check_after) {
+        // compute distance
+        $distance = $this->Admin_model->get_project_distance_by_to_from($check_after->project_id, $check_before->project_id);
+        // less than to 10KM sample, can be changed
+        if($distance->distance < 10) {
+          // make time available
+          $time[] = date("H",strtotime('+2 hour',strtotime($sched->schedule)));
+          // assign to associate
+          $db_associates[] = $data->assigned_to;
+        }
+      } elseif(!$check_before) {
+        $time[] = date("H",strtotime($sched->schedule));
+        $db_associates[] = $data->assigned_to;
+      }
+        
+        
+      endforeach;
+
+
+      // findout the associate without schedule yet
+      $diff = array_diff($associates, $db_associates);
+
+      // disable input without available handover associate left
+      if(!$diff && in_array('9',$time)) { $reserved1 = 'NOT AVAILABLE'; $avail1= 'false'; } 
+      elseif(!$diff && in_array('11',$time)) { $reserved2 = 'NOT AVAILABLE'; $avail2='false';} 
+      elseif(!$diff && in_array('14',$time)) { $reserved3 = 'NOT AVAILABLE'; $avail3='false';} 
+      elseif(!$diff && in_array('16',$time)) { $reserved4 = 'NOT AVAILABLE'; $avail4='false';} 
+    endforeach;
+
+    
+  } else {
+    //if no sched, assign to random associate and set time to available
+    //$assign_to = array_rand_value($associates,1);
+    $time = array();
+  }   ?>

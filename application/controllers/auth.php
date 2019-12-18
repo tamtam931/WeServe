@@ -52,7 +52,22 @@ class Auth extends CI_Controller {
     public function dashboard()
     {
        // redirect to first page after login
-        redirect('admin/my_dashboard/'.user('id'), 'refresh');
+        if(user('position') == 0) {
+            // ADMINISTRATOR
+            redirect('admin/my_dashboard/'.user('id'), 'refresh');
+        } elseif (user('position') == 6) {
+            // INBOUND ASSOCIATE
+            redirect('inbound/my_dashboard/'.user('id'), 'refresh');
+        } elseif (user('position') == 7) {
+            // OUTBOUND ASSOCIATE
+            redirect('outbound/my_dashboard/'.user('id'), 'refresh');
+        } elseif (user('position') == 10) {
+            // HANDOVER ASSOCIATE
+            redirect('handover/my_dashboard/'.user('id'), 'refresh');
+        }
+        
+
+        
     }
     
     public function logout()

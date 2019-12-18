@@ -1,13 +1,14 @@
 <?php 
-	if($data):
-	$unit_type = $this->Admin_model->get_unit_types_by_id($data);
+	if($data && $project):
+	$unit_type = $this->Admin_model->get_unit_types_by_id_project($data, $project);
 	$areas = $this->Admin_model->get_checking_areas_list(); ?>
 
 <div id="dynamic_div_area">
 	<form action="<?= base_url('admin/add_checking_area'); ?>" method="post" role="form" class="needs-validation">
-		<input type="hidden" class="form-control" id="unit_id" name = "unit_id" value="<?=  $data ?>">
-		<div class="col-md-4 mb-3">
-			<h4><?= $unit_type->unit_type; ?></h4>
+		<input type="hidden" class="form-control" id="project_id" name = "project_id" value="<?=  $unit_type->project_id; ?>">
+		<input type="hidden" class="form-control" id="unit_id" name = "unit_id" value="<?=  $data; ?>">
+		<div class="col-md-12 mb-3">
+			<h4><?= $unit_type->project_desc; ?> - <?= $unit_type->tower; ?> [<?= $unit_type->unit_type; ?>]</h4>
 		</div>
 		<div class="row">
 	    	<div class="col-md-4 mb-3">

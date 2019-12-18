@@ -26,8 +26,7 @@ class Authme
         $this->PasswordHash = new PasswordHash(8, $this->CI->config->item('authme_portable_hashes'));
     }
 
-    public function logged_in()
-    {
+    public function logged_in(){
         return $this->CI->session->userdata('logged_in');
     }
 

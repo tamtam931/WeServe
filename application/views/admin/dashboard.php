@@ -11,14 +11,14 @@
 				            <label for="project">Project</label>
 				            <select class="custom-select d-block w-100" id="project" name="project" required>
 				              	<option value=""> -- Please Choose --</option>
-				              	<option value="TEM" <?php if($_GET['project']){if($_GET['project'] == "TEM"){echo 'selected';}} ?>> The Estate Makati</option>
+				              	<option value="TEM" <?php if(!empty($_GET)){if($_GET['project'] == "TEM"){echo 'selected';}} ?>> The Estate Makati</option>
 				            </select>
 				        </div>
 				        <div class="col-md-4 mb-3">
 				            <label for="tower">Tower </label>
 				            <select class="custom-select d-block w-100" id="tower" name="tower" required>
 				              	<option value=""> -- Please Choose --</option>
-				              	<option value="1" <?php if($_GET['project']){if($_GET['tower'] == "1"){echo 'selected';}} ?>> 1 </option>
+				              	<option value="1" <?php if(!empty($_GET)){if($_GET['tower'] == "1"){echo 'selected';}} ?>> 1 </option>
 				            </select>
 				        </div>
 				        <div class="col-md-4 mb-3">

@@ -1,18 +1,4 @@
 <script type="text/javascript">
-// $("#capture").change(function() {
-//   readURL(this);
-// });
-
-
-// $(".image_btn").hide();
-// function show_upload_btn(count, value) {
-//     if (!value) {
-//         $("#image_btn"+ count).hide();
-//     } else {
-//     	$("#image_btn"+ count).show();
-//     }
-// }
-
 
 function readURL(input, preview_id) {
   if (input.files && input.files[0]) {
@@ -56,6 +42,7 @@ function id_capture_upload_modal() {
 function save_image_ajax(){
 	var form = $('#form_upload_image')[0];
     var data = new FormData(form);
+    console.log(data);
 	$.ajax({
         type: "POST",
         enctype: 'multipart/form-data',
@@ -114,7 +101,6 @@ function save_image_special_power_ajax() {
 function save_img_checklist_ajax(num){
 	var strform = '#form_upload_checklist_img' + num;
 	var form = $(strform)[0];
-	console.log(form);
     var data = new FormData(form);
 
 	$.ajax({
@@ -128,6 +114,7 @@ function save_img_checklist_ajax(num){
         success: function (data) {
             console.log("SUCCESS Uploading.. ", data);
             $('.add_img_modal').modal('hide');
+            // $('#images_row').html('<img class="img-responsive" src="<?= base_url('uploads/'); ?> '+ data'" style="max-height:100px;max-width:150px;" />');
         },
         error: function (e) {
         	alert('Error uploading an Image..');
@@ -138,6 +125,36 @@ function save_img_checklist_ajax(num){
 		complete:function(){
 			$('.hidden-loader').hide();
 		}
+    });
+}
+
+
+
+function save_concerns_ajax() {
+    var form = $('#form_other_concern')[0];
+    var formData = new FormData(form);
+    console.log(formData.get('userfile'));
+    $ajaxData = $.ajax({
+        type: "POST",
+        enctype: 'multipart/form-data',
+        url: "<?= base_url('handover/save_concern'); ?>",
+        data: formData,
+        processData: false,
+        contentType: false,
+        cache: false,
+        success:function(data){
+            console.log(formData);
+             $('#checking_areas_table').append(data);
+             $('#add_issue').modal('toggle');
+             //alert('Other Concern has been successfully added.');
+         },
+         beforeSend:function(){
+             $('.hidden-loader').show();
+         },
+         complete:function(){
+             $('.hidden-loader').hide();
+         }
+
     });
 }
 
@@ -242,6 +259,7 @@ function save_image_checklist_with_add_ajax(num) {
         success: function (data) {
             console.log("SUCCESS Uploading.. ", data);
             $('#capture'+num).val("");
+
             $('#preview_img'+num).remove();
 	        $('#add_image' + num).modal('show');
         },

@@ -47,6 +47,11 @@
 			            </select>
 				    </div>
 
+				    <div class="col-md-4 mb-3">
+			            <label for="lastname">Email Address<span style="color:red;">*</span></label>
+			            <input type="text" class="form-control" id="email_address" name="email_address" placeholder="" value="" required>
+			        </div>
+
 				    <div class = "row">
 					    <div class="col-md-4 mb-3">
 				            <label for="username">Username <span style="color:red;">*</span></label>
@@ -241,10 +246,6 @@
 			</div>
 
 			
-
-			
-
-
 	    	<table class="table" id="users_table">
 			  <thead class="thead-light">
 			    <tr>
@@ -275,31 +276,40 @@
 			      <td>
 			      	<?php
 			      	// get position og logon user
-			      	$logon_user_position = $this->Admin_model->get_position_by_id(user('position'));
-			      	$table_item_user_position = $this->Admin_model->get_position_by_id($user->position_id);
-			      	?>
+			      	if(user('position') > 0) :
+			      		$logon_user_position = $this->Admin_model->get_position_by_id(user('position'));
+				      	$table_item_user_position = $this->Admin_model->get_position_by_id($user->position_id);
+				      	?>
 
-			      	<?php if(user('position') != 1) :  ?>
-				      	<?php if($logon_user_position->role_id < $table_item_user_position->role_id): ?>
-				      		<?php if($logon_user_position->section_id == $table_item_user_position->section_id): ?>
-					        <a href="<?= base_url('admin/administration/?edit_id='.$user->user_id); ?>" class="btn btn-sm btn-primary my-1 my-sm-0">
+				      	<?php if(user('position') != 1) :  ?>
+					      	<?php if($logon_user_position->role_id < $table_item_user_position->role_id): ?>
+					      		<?php if($logon_user_position->section_id == $table_item_user_position->section_id): ?>
+						        <a href="<?= base_url('admin/administration/?edit_id='.$user->user_id); ?>" class="btn btn-sm btn-primary my-1 my-sm-0">
+						          <span class="fas fa-edit mr-1"></span>
+						          Edit</a>
+						        <a href="#" data-toggle="modal" data-target="#deleteConfirm<?= $user->user_id; ?>" class="btn btn-sm btn-danger my-1 my-sm-0">
+						          <span class="fas fa-trash mr-1"></span>
+						          Delete</a>
+						         <?php endif;?>
+					        <?php endif;?>
+					    <?php else: ?>
+					    	 <a href="<?= base_url('admin/administration/?edit_id='.$user->user_id); ?>" class="btn btn-sm btn-primary my-1 my-sm-0">
 					          <span class="fas fa-edit mr-1"></span>
 					          Edit</a>
 					        <a href="#" data-toggle="modal" data-target="#deleteConfirm<?= $user->user_id; ?>" class="btn btn-sm btn-danger my-1 my-sm-0">
 					          <span class="fas fa-trash mr-1"></span>
 					          Delete</a>
-					         <?php endif;?>
-				        <?php endif;?>
-				    <?php else: ?>
-				    	 <a href="<?= base_url('admin/administration/?edit_id='.$user->user_id); ?>" class="btn btn-sm btn-primary my-1 my-sm-0">
-				          <span class="fas fa-edit mr-1"></span>
-				          Edit</a>
-				        <a href="#" data-toggle="modal" data-target="#deleteConfirm<?= $user->user_id; ?>" class="btn btn-sm btn-danger my-1 my-sm-0">
-				          <span class="fas fa-trash mr-1"></span>
-				          Delete</a>
 
-				    <?php endif;?>
-
+					    <?php endif;?>
+					    <?php else: ?>
+					    	<!-- ADMINISTRATOR -->
+					    	<a href="<?= base_url('admin/administration/?edit_id='.$user->user_id); ?>" class="btn btn-sm btn-primary my-1 my-sm-0">
+					          <span class="fas fa-edit mr-1"></span>
+					          Edit</a>
+					        <a href="#" data-toggle="modal" data-target="#deleteConfirm<?= $user->user_id; ?>" class="btn btn-sm btn-danger my-1 my-sm-0">
+					          <span class="fas fa-trash mr-1"></span>
+					          Delete</a>
+						<?php endif;?>
 			      </td>
 			    </tr>
 
@@ -348,7 +358,7 @@
 	    </div>
 
 	    <div class="col-md-10" id="turnover_management">
-	    	WILL CONTAIN DISTANCE MAINTENANCE?? For discussion.
+	    	<?= $this->load->view('admin/part/administration_turnover_part', '', TRUE) ?>
 	    </div>
 
 	    <div class="col-md-10" id="list_values">
