@@ -207,7 +207,7 @@ class Inbound extends CI_Controller {
             $default_time = array('9','11','14','16');
             $assign_to = '';
               //$scheds = $this->Admin_model->get_schedules_per_date($sched);
-              $users = $this->Admin_model->get_all_handover_associate();
+              $users = $this->Admin_model->get_all_outbound_associate();
               foreach ($users as $associate) {
                 $associates[] = $associate->user_id;
               }
@@ -227,10 +227,10 @@ class Inbound extends CI_Controller {
                   $diff = array_diff($associates, $db_associates);
 
                   // disable input without available handover associate left
-                  if(!$diff && in_array('9',$time)) { $reserved1 = 'NOT AVAILABLE'; $avail1= 'false'; } 
-                  elseif(!$diff && in_array('11',$time)) { $reserved2 = 'NOT AVAILABLE'; $avail2='false';} 
-                  elseif(!$diff && in_array('14',$time)) { $reserved3 = 'NOT AVAILABLE'; $avail3='false';} 
-                  elseif(!$diff && in_array('16',$time)) { $reserved4 = 'NOT AVAILABLE'; $avail4='false';} 
+                //  if(!$diff && in_array('9',$time)) { $reserved1 = 'NOT AVAILABLE'; $avail1= 'false'; } 
+                  //elseif(!$diff && in_array('11',$time)) { $reserved2 = 'NOT AVAILABLE'; $avail2='false';} 
+                  //elseif(!$diff && in_array('14',$time)) { $reserved3 = 'NOT AVAILABLE'; $avail3='false';} 
+                  //elseif(!$diff && in_array('16',$time)) { $reserved4 = 'NOT AVAILABLE'; $avail4='false';} 
                 endforeach;
 
                 
@@ -593,6 +593,42 @@ class Inbound extends CI_Controller {
                 echo "<script type='text/javascript'>alert('Failure to send the email notification.');</script>";
                 redirect('inbound/schedule/', 'refresh');
             }
+        }
+    }
+
+    public function get_schedule_inbound()
+    {
+        if($this->input->is_ajax_request()) {
+            $events = $this->Admin_model->get_turnover_schedule_by_project_id_by_position_and_project_code($this->input->get('project') , '7');
+
+            $data_events = array();
+            $time = array(); 
+            foreach($events as $event) {
+                // $dt = date("YYYY-MM-DD",strtotime($sched->schedule);
+                // $time[] = date("YYYY-MM-DD H",strtotime($sched->schedule));
+                // $default_time = array($dt.'9',$dt.'11',$dt.'14', $dt.'16');
+
+                $data_events[] = array(
+                     "id" => $event->id,
+                     "title" => date("hA",strtotime($event->schedule)) . " With Schedule",
+                     "start" => $event->schedule
+                     // "customer_name" => $event->customer_name,
+                     // "property" => $event->property,
+                     // "unit_number" => $event->unit_number,
+                     // "parking_number" => $event->parking_number
+                );
+            }
+
+
+            echo json_encode(
+                array(
+                    "events" => $data_events
+                )
+            );
+
+             // exit();
+        } else {
+            //redirect('admin/my_dashboard/', 'refresh');
         }
     }
 }

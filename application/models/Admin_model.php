@@ -1031,4 +1031,36 @@ class Admin_model extends CI_Model {
     $query = $this->db->get();
     return $query->result();
  }
+
+ public function get_turnover_schedule_by_project_id_by_position($project_id , $position){
+  // $this->db->distinct('schedule');
+  $this->db-> select("*");
+  $this->db-> from('tbl_turnover_schedule');
+  $this->db->join('tbl_buyers_transaction','tbl_buyers_transaction.customer_number = tbl_turnover_schedule.customer_number');
+  $this->db->join('tbl_projects','tbl_projects.project_code = tbl_buyers_transaction.project');
+  $this->db->join('tbl_users', 'tbl_turnover_schedule.assigned_to = tbl_users.id');
+  $this->db->where('tbl_turnover_schedule.status', 0); //active
+  $this->db->where('tbl_users.position' , $position);
+  $this->db->where('tbl_projects.id', $project_id); //active
+  $this->db->order_by('tbl_turnover_schedule.schedule', 'ASC'); 
+  $this->db->group_by('tbl_turnover_schedule.schedule');
+  $query = $this->db->get();
+  return $query->result();  
+  }
+
+  public function get_turnover_schedule_by_project_id_by_position_and_project_code($project_code , $position){
+    // $this->db->distinct('schedule');
+    $this->db-> select("*");
+    $this->db-> from('tbl_turnover_schedule');
+    $this->db->join('tbl_buyers_transaction','tbl_buyers_transaction.customer_number = tbl_turnover_schedule.customer_number');
+    $this->db->join('tbl_projects','tbl_projects.project_code = tbl_buyers_transaction.project');
+    $this->db->join('tbl_users', 'tbl_turnover_schedule.assigned_to = tbl_users.id');
+    $this->db->where('tbl_turnover_schedule.status', 0); //active
+    $this->db->where('tbl_users.position' , $position);
+    $this->db->where('tbl_projects.project_code', $project_code); //active
+    $this->db->order_by('tbl_turnover_schedule.schedule', 'ASC'); 
+    $this->db->group_by('tbl_turnover_schedule.schedule');
+    $query = $this->db->get();
+    return $query->result();  
+    }
 }

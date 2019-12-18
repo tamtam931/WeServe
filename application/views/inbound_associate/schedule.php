@@ -146,7 +146,7 @@ function show_calendar(project) {
 	             events: function(start, end, timezone, callback) {
 	                 $.ajax({
 	                 type: "GET",
-	                 url: "<?php echo base_url('admin/schedule_datetime'); ?>",
+	                 url: "<?php echo base_url('inbound/get_schedule_inbound'); ?>",
 	                 dataType: 'json', 
 	                 data: {
 		                start: start.unix(),

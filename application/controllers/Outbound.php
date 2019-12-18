@@ -584,6 +584,42 @@ class Outbound extends CI_Controller {
             }
         }
     }
+
+    public function get_schedule_outbound()
+    {
+        if($this->input->is_ajax_request()) {
+            $events = $this->Admin_model->get_turnover_schedule_by_project_id_by_position($this->input->get('project') , '10');
+
+            $data_events = array();
+            $time = array(); 
+            foreach($events as $event) {
+                // $dt = date("YYYY-MM-DD",strtotime($sched->schedule);
+                // $time[] = date("YYYY-MM-DD H",strtotime($sched->schedule));
+                // $default_time = array($dt.'9',$dt.'11',$dt.'14', $dt.'16');
+
+                $data_events[] = array(
+                     "id" => $event->id,
+                     "title" => date("hA",strtotime($event->schedule)) . " With Schedule",
+                     "start" => $event->schedule
+                     // "customer_name" => $event->customer_name,
+                     // "property" => $event->property,
+                     // "unit_number" => $event->unit_number,
+                     // "parking_number" => $event->parking_number
+                );
+            }
+
+
+            echo json_encode(
+                array(
+                    "events" => $data_events
+                )
+            );
+
+             // exit();
+        } else {
+            //redirect('admin/my_dashboard/', 'refresh');
+        }
+    }
 }
 
 

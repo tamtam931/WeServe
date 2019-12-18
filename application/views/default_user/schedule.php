@@ -120,7 +120,7 @@ function show_calendar(project){
 	             events: function(start, end, timezone, callback) {
 	                 $.ajax({
 					 type: "GET",
-	                 url: "<?php echo base_url('admin/get_schedule'); ?>",
+	                 url: "<?php echo base_url('default_user/get_schedule_hand_over'); ?>",
 	                 dataType: 'json', 
 	                 data: {
 		                start: start.unix(),
@@ -197,7 +197,7 @@ function check_availability(available,formData) {
 					$('.alert').remove();
 					$('#modalBody').append('<div class="alert alert-danger alert-dismissible fade show" role="alert" id="modal_message"> <span id="modal_text">*NOT AVAILABLE* <br> Selected date and time will not be saved. Please select and confirm your preferred schedule.</span><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
 					// save first option date
-				 	$ajaxData = $.ajax({
+				/*  	$ajaxData = $.ajax({
 						url: "<?base_url('admin/add_schedule_logs') ?>",
 						method: "POST",
 						data: {data : formData},
@@ -210,7 +210,7 @@ function check_availability(available,formData) {
 						complete:function(){
 							$('.hidden-loader').hide();
 						}
-					}); 
+					});  */
 			}
 			return available;
 			//END

@@ -68,75 +68,73 @@ class Default_user extends CI_Controller {
 
 
         //If has a schedule
-        if (!empty($hand_assoc_sched)){
-            foreach($hand_assoc_sched as $hand_assoc_scheds){
-                $sched = $hand_assoc_scheds->schedule;
-                $sched_chcker[] = $hand_assoc_scheds->schedule;
-                $ticket_number = $hand_assoc_scheds->ticket_number;
-                $availability["assoc_assigned_project"] = strtok($ticket_number, '-');
-                $project_code = strtok($ticket_number, '-');
-                
-                
-                $sched_date_where_clausehed = $new_dt->format('Y-m-d') . ' ' . '09:00:00';
-                
-                if (in_array($new_dt->format('Y-m-d H:i:s') , $sched_chcker)){
-                    $availability['in_array_sched'] = $sched_chcker;
-                    $availability['reserved'] = 'NOT AVAILABLE'; $availability['avail']= 'false';
-                }else{
-                    $sched_date_where_clause_sched_9 = $new_dt->format('Y-m-d') . ' ' . '09:00:00';
-                    $sched_date_where_clause_sched_11 = $new_dt->format('Y-m-d') . ' ' . '11:00:00';
-                    $sched_date_where_clause_sched_14 = $new_dt->format('Y-m-d') . ' ' . '14:00:00';
-                    if ($time == '9' ){
-                        $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
-                        if($distance_calculated > 10){
-                            $availability['avail'] = 'false';
-                            $availability['reserved'] = 'NOT AVAILABLE';
-                            $availability['More than 10KM in selected time is 9AM'] = '';
-                        }else{
-                            $availability['avail']= 'true';
-                            $availability['reserved'] = '';
-                            $availability['Less than 10KM in selected time is 9AM -> time selected is 9'] = '';
-                        }
-                    }else if ($time == '11'){
-                        $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
-                        if($distance_calculated > 10){
-                            $availability['avail'] = 'false';
-                            $availability['reserved'] = 'NOT AVAILABLE';
-                            $availability['More than 10KM in selected time is 11AM'] = '';
-                        }else{
-                            $availability['avail'] = 'true';
-                            $availability['reserved'] = '';
-                            $availability['Less than 10KM in selected time is 11AM'] = '';
-                        }
-                    }else if ($time == '14'){
-                        $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
-                        if($distance_calculated > 10){
-                            $availability['avail'] = 'false';
-                            $availability['More than 10KM(Schedule is 9AM) in selected time is 14AM'] = '';
-                            $distance_calculateds = $this->get_user_preference($sched_date_where_clause_sched_11 , $hand_over_assign , $distination);
-                            if ($distance_calculateds > 10){
-                                $availability['avail'] = 'false';
-                                $availability['reserved'] = 'NOT AVAILABLE';
-                                $availability['More than 10KM(Schedule is 11AM) in selected time is 14AM'] = '';
-                            }else{
-                                $availability['avail'] = 'true';
-                                $availability['reserved'] = '';
-                            }
-                        }else{
-                            $distance_calculated_no_9 = $this->get_user_preference($sched_date_where_clause_sched_11 , $hand_over_assign , $distination);
-                            if ($distance_calculated_no_9 > 10){
-                                $availability['avail'] = 'false';
-                                $availability['reserved'] = 'NOT AVAILABLE';
-                                $availability['More than 10KM(Schedule is 11AM No Sched in 9AM) in selected time is 14AM'] = '';
-                            }else{
-                                $availability['avail'] = 'true';
-                                $availability['reserved'] = '';
-                                $availability['Less than 10KM in selected time is 9AM No Sched in 9AM -> time selected is 14-else'] = $sched_date_where_clause_sched_9 . $hand_over_assign . $distination;
-                            }
-                        }
+       if (!empty($hand_assoc_sched)){
+        foreach($hand_assoc_sched as $hand_assoc_scheds){
+            $sched = $hand_assoc_scheds->schedule;
+            $sched_chcker[] = $hand_assoc_scheds->schedule;
+            $ticket_number = $hand_assoc_scheds->ticket_number;
+            $availability["assoc_assigned_project"] = strtok($ticket_number, '-');
+            $project_code = strtok($ticket_number, '-');
+            
+            
+            $sched_date_where_clausehed = $new_dt->format('Y-m-d') . ' ' . '09:00:00';
+            
+            if (in_array($new_dt->format('Y-m-d H:i:s') , $sched_chcker)){
+                $availability['in_array_sched'] = $sched_chcker;
+                $availability['reserved'] = 'NOT AVAILABLE'; $availability['avail']= 'false';
+            }else{
+                $sched_date_where_clause_sched_9 = $new_dt->format('Y-m-d') . ' ' . '09:00:00';
+                $sched_date_where_clause_sched_11 = $new_dt->format('Y-m-d') . ' ' . '11:00:00';
+                $sched_date_where_clause_sched_14 = $new_dt->format('Y-m-d') . ' ' . '14:00:00';
+                $sched_date_where_clause_sched_16 = $new_dt->format('Y-m-d') . ' ' . '16:00:00';
+                if ($time == '9' ){
+                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
+                    if($distance_calculated > 10){
+                        $availability['avail'] = 'false';
+                        $availability['reserved'] = 'NOT AVAILABLE';
+                        $availability['More than 10KM in selected time is 9AM'] = '';
+                    }else{
+                        $availability['avail']= 'true';
+                        $availability['reserved'] = '';
+                        $availability['Less than 10KM in selected time is 9AM -> time selected is 9'] = '';
+                    }
+                }else if ($time == '11'){
+                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
+                    if($distance_calculated > 10){
+                        $availability['distance'] = $distination;
+                        $availability['avail'] = 'false';
+                        $availability['reserved'] = 'NOT AVAILABLE';
+                        $availability['More than 10KM in selected time is 11AM'] = '';
+                    }else{
+                        $availability['distance'] = $distination;
+                        $availability['avail'] = 'true';
+                        $availability['reserved'] = '';
+                        $availability['Less than 10KM in selected time is 11AM'] = '';
+                    }
+                }else if ($time == '14'){
+                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_11 , $hand_over_assign , $distination);
+                    if($distance_calculated > 10){
+                        $availability['avail'] = 'false';
+                        $availability['More than 10KM(Schedule is 9AM) in selected time is 14AM'] = '';   
+                    }else{
+                        $availability['avail'] = 'true';
+                        $availability['reserved'] = '';
+                    }
+                }else if ($time == '16'){
+                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
+                    $distance_calculated_11 = $this->get_user_preference($sched_date_where_clause_sched_11 , $hand_over_assign , $distination);
+                    $distance_calculated_14 = $this->get_user_preference($sched_date_where_clause_sched_14 , $hand_over_assign , $distination);
+                    
+                    if ($distance_calculated_14 > 10){
+                        $availability['avail'] = 'false';
+                        $availability['More than 10KM(Schedule is 2PM) in selected time is 4PM'] = ''; 
+                    }else{
+                        $availability['avail'] = 'true';
+                        $availability['reserved'] = '';
                     }
                 }
             }
+        }
         }else{
             $availability['reserved'] = ''; $availability['avail']= 'true';
         }
@@ -161,25 +159,32 @@ class Default_user extends CI_Controller {
 
     public function get_user_preference($ched , $assigned_to , $project_distination){
         $distance = '0';
-        $schedule = $this->Admin_model->get_sched_of_hand_overs($ched , $assigned_to);
-        if (!empty($schedule)){
+        $schedule = $this->Admin_model->get_sched_of_hand_over($ched , $assigned_to);
+        if ($schedule !== '0'){
             foreach($schedule as $data){
                 $ticket_number = $data->ticket_number;
                 $project_code = strtok($ticket_number, '-');
                 //Get the Project id of the hand over assoc sched on the user selected date.
                 $project_id_of_assoc_sched_assign = $this->Admin_model->get_project_id_assoc($project_code);
-                //Get the project if of unit owner. 
                 $assoc_distination = $this->Admin_model->get_project_id_assoc($project_distination);
-                //Get the distance base on the project id.
-                $distance_project = $this->Admin_model->get_distance_project($project_id_of_assoc_sched_assign->id , $assoc_distination->id);   
-                $distance = $distance_project->distance;
-                return $distance;
+                foreach($project_id_of_assoc_sched_assign as $data1){
+                    $id = $data1->id;
+                    foreach($assoc_distination as $data2){
+                        $id2 = $data2->id;
+                        $distance_project = $this->Admin_model->get_distance_project($id , $id2);   
+                        foreach($distance_project as $data_dis){
+                            $distance = $data_dis->distance;
+                            return $distance;
+                        }
+                    }
+                }
             }
         }else{
             return $distance;
         }
         
-    }
+    }   
+
 
     public function schedule() {
         $ticket_number_parameter = $this->uri->segment(3);
@@ -683,6 +688,42 @@ class Default_user extends CI_Controller {
         //  if($oXML->E_RESPONSE == "OK") {
         //  }
  
+     }
+
+     public function get_schedule_hand_over()
+     {
+         if($this->input->is_ajax_request()) {
+             $events = $this->Admin_model->get_turnover_schedule_by_project_id_by_position($this->input->get('project') , '10');
+ 
+             $data_events = array();
+             $time = array(); 
+             foreach($events as $event) {
+                 // $dt = date("YYYY-MM-DD",strtotime($sched->schedule);
+                 // $time[] = date("YYYY-MM-DD H",strtotime($sched->schedule));
+                 // $default_time = array($dt.'9',$dt.'11',$dt.'14', $dt.'16');
+ 
+                 $data_events[] = array(
+                      "id" => $event->id,
+                      "title" => date("hA",strtotime($event->schedule)) . " With Schedule",
+                      "start" => $event->schedule
+                      // "customer_name" => $event->customer_name,
+                      // "property" => $event->property,
+                      // "unit_number" => $event->unit_number,
+                      // "parking_number" => $event->parking_number
+                 );
+             }
+ 
+ 
+             echo json_encode(
+                 array(
+                     "events" => $data_events
+                 )
+             );
+ 
+              // exit();
+         } else {
+             //redirect('admin/my_dashboard/', 'refresh');
+         }
      }
 }
 
