@@ -345,12 +345,10 @@ class Admin extends CI_Controller {
     }
   
 
-    
-
 
     public function add_schedule_logs() {
-        $url_data = $this->input->post('data');
-        parse_str($url_data);
+        $url_data = $this->input->get('data');
+        parse_str($this->$url_data);
 
         $user_id = $logged_user;
         $property = $property;
