@@ -83,8 +83,8 @@ $db['default'] = array(
 	'dbprefix' => '',
 	'pconnect' => FALSE,
 	'db_debug' => (ENVIRONMENT !== 'production'),
-	'cache_on' => TRUE, //Turned On by: Ben Zarmaynine E. Obra; 110419
-	'cachedir' => 'application/cache/db', //Added by: Ben Zarmaynine E. Obra; 110419
+	'cache_on' => FALSE,
+	'cachedir' => '',
 	'char_set' => 'utf8',
 	'dbcollat' => 'utf8_general_ci',
 	'swap_pre' => '',

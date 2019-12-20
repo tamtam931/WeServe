@@ -56,8 +56,65 @@ $route['admin/main/:num'] = 'Admin/main';
 $route['admin/check_username'] = 'Admin/check_username';
 $route['admin/ticket_details/:num'] = 'Admin/ticket_details';
 $route['admin/turnover_schedule/:num'] = 'Admin/schedule';
-
+$route['admin/buyer_details/:num'] = 'Admin/buyer_details';
 $route['admin/get_value_edit_area/'] = 'Admin/get_value_edit_area';
+$route['admin/get_value_edit_area_list/'] = 'Admin/get_value_edit_area_list';
 
+$route['handover/acceptance_page/:any/:any'] = 'Handover/acceptance_page';
+
+/*
+	Turnover Dashboard updates
+	Added: Ben Zarmaynine E. Obra
+	Date: 12-18-19
+	
+*/
+
+$route['admin/dashboard']['GET'] = 'Admin/dashboard';
+$route['admin/dashboard/Companies/:any/Towers/:any/Units/:any']['GET'] = 'Admin/dashboard_show';
+
+//end
+
+
+
+/*
+	SAP API Routes
+	Added: Ben Zarmaynine E. Obra
+	Date: 11-26-19
+*/
+
+$route['sap/auth']['GET'] = 'sapAuthController/index';
+$route['sap/auth/create']['GET'] = 'sapAuthController/create';
+$route['sap/auth/create']['POST'] = 'sapAuthController/create';
+$route['sap/auth']['POST'] = 'sapAuthController/store';
+$route['sap/auth/:any']['GET'] = 'sapAuthController/show';
+$route['sap/auth/:any/edit']['GET'] = 'sapAuthController/edit';
+$route['sap/auth/:any/edit']['POST'] = 'sapAuthController/update';
+$route['sap/auth/:any']['POST'] = 'sapAuthController/destroy';
+
+$route['sap/project']['GET'] = 'sapProjectController/index';
+$route['sap/project/create']['GET'] = 'sapProjectController/create';
+$route['sap/project/create']['POST'] = 'sapProjectController/create';
+$route['sap/project']['POST'] = 'sapProjectController/store';
+$route['sap/project/:any']['GET'] = 'sapProjectController/show';
+$route['sap/project/:any/edit']['GET'] = 'sapProjectController/edit';
+$route['sap/project/:any/edit']['POST'] = 'sapProjectController/update';
+$route['sap/project/:any']['POST'] = 'sapProjectController/destroy';
+
+$route['sap/customer']['GET'] = 'sapCustomerController/index';
+$route['sap/customer/create']['GET'] = 'sapCustomerController/create';
+$route['sap/customer']['POST'] = 'sapCustomerController/store';
+$route['sap/customer/:any']['GET'] = 'sapCustomerController/show';
+$route['sap/customer/:any/edit']['GET'] = 'sapCustomerController/edit';
+$route['sap/customer/:any/edit']['POST'] = 'sapCustomerController/update';
+$route['sap/customer/:any']['POST'] = 'sapCustomerController/destroy';
+$route['sap/customer/test/call']['GET'] = 'sapCustomerController/call';
+
+$route['sap'] = 'sapWeserveController/index';
+$route['sap/:any'] = 'sapWeserveController/show';
+
+$route['sap/unit/company/:any']['GET'] = 'sapUnitController/indexCompany';
+$route['sap/unit/company/:any/project/:any']['GET'] = 'sapUnitController/indexCompanyProject'; 
+
+//end
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
