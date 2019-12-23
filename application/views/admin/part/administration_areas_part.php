@@ -1,13 +1,14 @@
 <?php 
-	if($data):
-	$unit_type = $this->Admin_model->get_unit_types_by_id($data);
+	if($data && $project):
+	$unit_type = $this->Admin_model->get_unit_types_by_id_project($data, $project);
 	$areas = $this->Admin_model->get_checking_areas_list(); ?>
 
 <div id="dynamic_div_area">
 	<form action="<?= base_url('admin/add_checking_area'); ?>" method="post" role="form" class="needs-validation">
-		<input type="hidden" class="form-control" id="unit_id" name = "unit_id" value="<?=  $data ?>">
-		<div class="col-md-4 mb-3">
-			<h4><?= $unit_type->unit_type; ?></h4>
+		<input type="hidden" class="form-control" id="project_id" name = "project_id" value="<?=  $unit_type->project; ?>">
+		<input type="hidden" class="form-control" id="unit_id" name = "unit_id" value="<?=  $data; ?>">
+		<div class="col-md-12 mb-3">
+			<h4><?= $unit_type->project_desc; ?> - <?= $unit_type->tower; ?> [<?= $unit_type->unit_type; ?>]</h4>
 		</div>
 		<div class="row">
 	    	<div class="col-md-4 mb-3">
@@ -102,7 +103,7 @@
 		      } else { echo "Yes"; } ?>
 	      </th>
 	      <th scope="row">
-	      	<button type="button" onclick="edit_areas_ajax(<?= $area->id ?>);" data-id="<?= $area->id ?>" id="btn_edit_area<?= $area->id ?>" class="btn_area_edit btn btn-sm btn-primary my-1 my-sm-0 "><span class="fas fa-edit mr-1"></span>Edit</button>
+	      	<button type="button" onclick="edit_areas_ajax(<?= $area->list_id ?>);" data-id="<?= $area->id ?>" id="btn_edit_area<?= $area->id ?>" class="btn_area_edit btn btn-sm btn-primary my-1 my-sm-0 "><span class="fas fa-edit mr-1"></span>Edit</button>
 	        <a href="#" data-toggle="modal" data-target="#delete_area<?= $area->id; ?>" class="btn btn-sm btn-danger my-1 my-sm-0">
 	          <span class="fas fa-trash mr-1"></span>
 	          Delete</a>
@@ -125,7 +126,7 @@
 			        Added areas for checking will be deleted, do you wish to continue? 
 			      </div>
 			      <div class="modal-footer">
-			      	<a href="<?= base_url('admin/delete_checking_area/'.$area->unit_type.'/'.$area->id); ?>" class="btn btn-primary">Yes</a>
+			      	<a href="<?= base_url('admin/delete_checking_area/'.$area->id.'/'.$area->list_id.'/'.$area->project); ?>" class="btn btn-primary">Yes</a>
 			        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
 			      </div>
 		  		<!-- </form> -->

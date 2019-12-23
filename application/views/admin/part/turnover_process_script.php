@@ -1,18 +1,5 @@
+<script type="text/javascript" src="<?= base_url('assets/js/jquery-3.4.1.min.js') ?>"></script> 
 <script type="text/javascript">
-// $("#capture").change(function() {
-//   readURL(this);
-// });
-
-
-// $(".image_btn").hide();
-// function show_upload_btn(count, value) {
-//     if (!value) {
-//         $("#image_btn"+ count).hide();
-//     } else {
-//     	$("#image_btn"+ count).show();
-//     }
-// }
-
 
 function readURL(input, preview_id) {
   if (input.files && input.files[0]) {
@@ -24,6 +11,16 @@ function readURL(input, preview_id) {
     
     reader.readAsDataURL(input.files[0]);
   }
+}
+
+$("#temp_parking_remarks_div").hide();
+function temp_parking_show() {
+    $("#temp_parking_remarks_div").show();
+}
+
+$("#signature_footer").hide();
+function signature_footer_show() {
+    $("#signature_footer").show();
 }
 
 function turnover_modal(selected){
@@ -56,6 +53,7 @@ function id_capture_upload_modal() {
 function save_image_ajax(){
 	var form = $('#form_upload_image')[0];
     var data = new FormData(form);
+    console.log(data);
 	$.ajax({
         type: "POST",
         enctype: 'multipart/form-data',
@@ -114,8 +112,8 @@ function save_image_special_power_ajax() {
 function save_img_checklist_ajax(num){
 	var strform = '#form_upload_checklist_img' + num;
 	var form = $(strform)[0];
-	console.log(form);
     var data = new FormData(form);
+    var count = 0;
 
 	$.ajax({
         type: "POST",
@@ -127,7 +125,10 @@ function save_img_checklist_ajax(num){
         cache: false,
         success: function (data) {
             console.log("SUCCESS Uploading.. ", data);
+            zurl = window.location.protocol+'//'+window.location.hostname+'/weserve/uploads/'+data;
+            $('#images_row'+count).append('<img src="'+zurl+'" style="max-height:100px;max-width:150px;">');
             $('.add_img_modal').modal('hide');
+            console.log(count+zurl);
         },
         error: function (e) {
         	alert('Error uploading an Image..');
@@ -138,6 +139,36 @@ function save_img_checklist_ajax(num){
 		complete:function(){
 			$('.hidden-loader').hide();
 		}
+    });
+}
+
+
+
+function save_concerns_ajax() {
+    var form = $('#form_other_concern')[0];
+    var formData = new FormData(form);
+    console.log(formData.get('userfile'));
+    $ajaxData = $.ajax({
+        type: "POST",
+        enctype: 'multipart/form-data',
+        url: "<?= base_url('handover/save_concern'); ?>",
+        data: formData,
+        processData: false,
+        contentType: false,
+        cache: false,
+        success:function(data){
+            console.log(formData);
+             $('#checking_areas_table').append(data);
+             $('#add_issue').modal('toggle');
+             //alert('Other Concern has been successfully added.');
+         },
+         beforeSend:function(){
+             $('.hidden-loader').show();
+         },
+         complete:function(){
+             $('.hidden-loader').hide();
+         }
+
     });
 }
 
@@ -242,6 +273,7 @@ function save_image_checklist_with_add_ajax(num) {
         success: function (data) {
             console.log("SUCCESS Uploading.. ", data);
             $('#capture'+num).val("");
+
             $('#preview_img'+num).remove();
 	        $('#add_image' + num).modal('show');
         },
@@ -257,5 +289,62 @@ function save_image_checklist_with_add_ajax(num) {
     });
 }
 
+function populate_summary_punchlist(total_count) {
+    for (i = 0; i < total_count; i++) {
+      $("#obsrv" +i).text($("#observation"+i).val());
+    }
+
+}
 
 </script>
+<!-- SIGNATURE -->
+<script type="text/javascript" src="<?= base_url('assets/jsSignature/jSignature.min.js'); ?>"></script> 
+<script type="text/javascript" src="<?= base_url('assets/jsSignature/libs/modernizr.js');?>"></script>
+    
+ <script type="text/javascript">
+$(document).ready(function() {
+
+ // Initialize jSignature
+ var $sigdiv = $("#signature").jSignature({'UndoButton':true});
+
+ $('#click').click(function(){
+  // Get response of type image
+  var zdata = $sigdiv.jSignature('getData', 'image');
+    console.log(zdata);
+   // console.log($("#ticket_id").val());
+  $('#output').val(zdata);
+
+  $ajaxData = $.ajax({
+        type: "POST",
+        url: "<?= base_url('handover/save_signature_ajax'); ?>",
+        data: {
+            imagedata : zdata[1],
+            ticket_id : $("#ticket_id").val()
+        },
+        cache: false,
+        success:function(data){
+            // Storing in textarea
+            console.log(data);
+            
+         },
+         beforeSend:function(){
+             $('.hidden-loader').show();
+         },
+         complete:function(){
+             $('.hidden-loader').hide();
+         }
+
+    });
+
+  // Alter image source 
+  $('#sign_prev').attr('src',"data:"+zdata);
+  $('#sign_prev').show();
+ });
+});
+</script>
+
+<script type="text/javascript" src="<?= base_url('assets/js/jquery.dataTables.min.js') ?>"></script>
+<script type="text/javascript" src="<?= base_url('assets/js/popper.min.js') ?>"></script>
+<script type="text/javascript" src="<?= base_url('assets/js/bootstrap.min.js') ?>"></script>
+<script type="text/javascript" src="<?= base_url('assets/js/custom.js') ?>"></script>
+<script type="text/javascript" src="<?= base_url('assets/js/weserve.js') ?>"></script>

@@ -1,15 +1,16 @@
 <script type="text/javascript">
 window.onload = function() {
-
 	// $("#accounts_management").hide();
+	$("#extension_number_div").hide();
 	$("#change_password").hide();
 	$("#unit_type_management").hide();
 	$("#turnover_management").hide();
 	$("#list_values").hide();
 
 	$('#users_table').DataTable();
-    $('#unit_type_table').DataTable();
+   	$('#unit_type_table').DataTable();
     $('#unit_type_details_table').DataTable();
+    $('#turnover_management_table').DataTable();
 
 	var username1;
 	var username2;
@@ -138,12 +139,6 @@ window.onload = function() {
 
 		});
 
-		$(".btn_unit_area").click(function(){
-			checking_areas_ajax($(this).data("id"));
-		});
-
-
-
 		if(window.location.hash){
 			//console.log(window.location.hash);
 			var hash = window.location.hash;
@@ -152,25 +147,72 @@ window.onload = function() {
 				var segments = window.location.href.split('/');
 				
 				// trigger the display of areas table also
-				checking_areas_ajax(segments[6]);
+				checking_areas_ajax(segments[6],segments[7]);
+			}
+
+			if(hash == '#btn_turnover') {
+				var segments = window.location.href.split('/');
+				
+				// trigger the display of areas table also
+				project_distance(segments[6]);
 			}
 			
 		}
 
+		$(".btn_unit_area").click(function(){
+			checking_areas_ajax($(this).data("id"), $(this).data("project"));
+		});
+
+		$(".btn_proj").click(function(){
+			project_distance($(this).data("id"));
+		});
+
+
     });
 
 
+$("#position").change(function() {
+   // console.log($("#position :selected").text());
+   var selected_text = $("#position :selected").text();
+	if(selected_text == 'Outbound Associate' || selected_text == 'Outbound Head') {
+		$("#extension_number_div").show();
+	} else {
+		$("#extension_number_div").hide();
+	}
+});
 
+ function checking_areas_ajax(type_id, project_id){
+ 	$('#unit_type_details').empty();
 
-   
- function checking_areas_ajax(type_id){
 	$ajaxData = $.ajax({
 		url: "<?= base_url('admin/checking_areas_part') ?>",
 		method: "GET",
-		data: {id : type_id},
+		data: {id : type_id, project: project_id},
 		dataType: "html",
 		success:function(data){
 			$('#unit_type_details').html(data);
+			
+		},
+		beforeSend:function(){
+			$('.hidden-loader').show();
+		},
+		complete:function(){
+			$('.hidden-loader').hide();
+		}
+
+	});
+
+	return $ajaxData;
+}
+
+ function project_distance(project_id){
+	$ajaxData = $.ajax({
+		url: "<?= base_url('admin/get_project_distance') ?>",
+		method: "GET",
+		data: {id : project_id},
+		dataType: "html",
+		success:function(data){
+			$('#project_details').html(data);
 			
 		},
 		beforeSend:function(){

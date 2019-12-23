@@ -1,12 +1,14 @@
 <?php 
 	if($checking_area_id):
 	$checking_area = $this->Admin_model->get_checking_areas_by_id($checking_area_id); 
+	// var_dump($checking_area); exit;
 	$areas = $this->Admin_model->get_checking_areas_list();?>
 
 
 	<form action="<?= base_url('admin/edit_checking_area'); ?>" method="post" role="form" class="needs-validation">
 		<input type="hidden" class="form-control" id="edit_area_id" name = "edit_area_id" value="<?=  $checking_area_id ?>">
 		<input type="hidden" class="form-control" id="edit_type_id" name = "edit_type_id" value="<?=  $checking_area->unit_type ?>">
+		<input type="hidden" class="form-control" id="project_id" name = "project_id" value="<?=  $checking_area->project ?>">
 		<div class="col-md-4 mb-3">
 			<h4>Edit Checking Area</h4>
 		</div>

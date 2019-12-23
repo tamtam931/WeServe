@@ -1,29 +1,31 @@
 <?= $this->load->view('top', '', TRUE) ?>
 <div class="container py-5 mb5">
   <h3 class="mb-3">TURN OVER SCHEDULE</h3>
- <?php $ticket_id = $this->uri->segment(3); $detail='';?>
- <?php if($ticket_id) :?>
-	<?php $detail = $this->Admin_model->get_ticket_by_id($this->uri->segment(3)); ?>
-  <?php endif; ?>
+
   	<div class="row">
   		<div class="col-md-12">
 	    	<div id="turnover_schedule">
 		    	<form action="<?= base_url('admin/add_schedule'); ?>" method="post" role="form" class="needs-validation">
 		    		<input type="hidden" class="form-control" id="logged_user" name = "logged_user" value="<?= user('id'); ?>">
-	        		<div class="row">
+	        		<input type="hidden" class="form-control" id="project" name = "project" value="">
+					<input type="hidden" class="form-control" id="assign_to" name = "assign_to" value="">
+					<div class="row">
 	        			<div class="col-md-4 mb-3">
 				            <label for="property">Property <span style="color:red;">*</span></label>
-
-				            <select class="custom-select d-block w-100" id="property" name="property" required>
+				            <select class="custom-select d-block w-100" id="property" name="property" onchange="show_calendar(this.value);" required>
 				              	<option value=""> -- Please Choose --</option>
-				              	<option value="TEM" <?php if($detail){if($detail->project == "TEM"){echo 'selected';}} ?>> The Estate Makati</option>
+				              	<?php foreach($projects as $project):?>
+				              	<option value="<?= $project->project_code ?>"> <?= $project->project ?></option>
+				              	<?php endforeach; ?>
 				            </select>
 				        </div>
 				        <div class="col-md-4 mb-3">
 				            <label for="unit_number">Unit Number <span style="color:red;">*</span></label>
 				            <select class="custom-select d-block w-100" id="unit_number" name="unit_number" required>
 				              	<option value=""> -- Please Choose --</option>
-				              	<option value="8A" <?php if($detail){if(($detail->unit_number . $detail->unit_desc) == "8A"){echo 'selected';}} ?>> 8A </option>
+				              	<?php foreach($units as $unit):?>
+				              	<option value="<?= $unit->unit_number ?><?= $unit->unit_desc ?>"> <?= $unit->unit_number ?><?= $unit->unit_desc ?> </option>
+				              	<?php endforeach; ?>
 				            </select>
 				        </div>
 	        		</div>
@@ -32,14 +34,18 @@
 				            <label for="parking">Parking Number <span style="color:red;">*</span></label>
 				            <select class="custom-select d-block w-100" id="parking" name="parking" required>
 				              	<option value=""> -- Please Choose --</option>
-				              	<option value="B6135 / B6136" <?php if($detail){if($detail->parking_number == "B6135 / B6136"){echo 'selected';}} ?>> B6135 / B6136 </option>
+				              	<?php foreach($units as $unit):?>
+				              	<option value="<?= $unit->parking_number ?>"> <?= $unit->parking_number ?> </option>
+				              	<?php endforeach; ?>
 				            </select>
 				        </div>
 				        <div class="col-md-4 mb-3">
-				            <label for="customer_name">Customer Name <span style="color:red;">*</span></label>
-				            <select class="custom-select d-block w-100" id="customer_name" name="customer_name" required>
+				            <label for="customer_number">Customer Name <span style="color:red;">*</span></label>
+				            <select class="custom-select d-block w-100" id="customer_number" name="customer_number" required>
 				              	<option value=""> -- Please Choose --</option>
-				              	<option value="Erika Rabara" <?php if($detail){ if(($detail->customer_name) == "ERIKA BARBARA"){echo 'selected';}} ?>> ERIKA BARBARA </option>
+				              	<?php foreach($customers as $customer):?>
+				              	<option value="<?= $customer->customer_number ?>"> <?= $customer->customer_name ?> - <?= $customer->customer_number ?></option>
+				              	<?php endforeach; ?>
 				            </select>
 				        </div>
 			    	</div>
@@ -59,9 +65,9 @@
 				                <div id="modalBody" class="modal-body">
 
 				                </div>
-				               <div class="modal-footer">
-							        <button type="submit" class="btn btn-dark">Save</button>
-							        <button type="button" class="btn btn-outline-dark" data-dismiss="modal">Cancel</button>
+				               <div class="modal-footer" id="modalBtns">
+							        <button type="submit" class="btn btn-dark">Yes</button>
+							        <button type="button" class="btn btn-outline-dark" data-dismiss="modal">No</button>
 							     </div>
 				            </div>
 				        </div>
@@ -89,48 +95,64 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 <script>
 $(document).ready(function() {
+$("#modal_message").hide();
+$('#modalBtns').hide();
+$("#modalBody").empty();
+});
 
-    $('#calendar').fullCalendar({
-        header: {
-            left: '',
-            center: 'prev title next',
-            right: ''
-        },
+function show_calendar(project) {
+	console.log(project);
+	$('#calendar').fullCalendar({
+	    header: {
+	        left: '',
+	        center: 'prev title next',
+	        right: '',
+	         weekends: false
+	    },
 
-        dayClick:  function(date, jsEvent, view) {
-        	// parent.location.hash = moment(date).format('YYYY-MM-DD');
-        	dd = moment(date, 'DD.MM.YYYY').format('dddd, MMMM D, YYYY');
-            $('#modalTitle').html(dd);
-            // $('#schd').html(moment(date).format('YYYY-MM-DD'));
-            $('#selected_dt').val(moment(date).format('YYYY-MM-DD'));
+	    dayClick:  function(date, jsEvent, view) {
+	    	// parent.location.hash = moment(date).format('YYYY-MM-DD');
 
-            $.ajax({
-		      type: 'GET',
-		      url: "<?php echo base_url('admin/schedule_datetime'); ?>",
-		      data: {dt: moment(date).format('YYYY-MM-DD')},
-		      cache: false,
-		      success: function(data){
-		      	console.log(data);
-		        calendar_ajax(data);
-		        $('#calendar_details').modal();
+	    	 var checkDay = new Date( moment(date, 'DD.MM.YYYY').format('dddd, MMMM D, YYYY'));
+    		if (checkDay.getDay() != 0) { // weekdays to saturday only
+    			dd = moment(date, 'DD.MM.YYYY').format('dddd, MMMM D, YYYY');
+	    	
+		        $('#modalTitle').html(dd);
+		        $('#selected_dt').val(moment(date).format('YYYY-MM-DD'));
+		        $.ajax({
+			      type: 'GET',
+			      url: "<?php echo base_url('admin/schedule_datetime'); ?>",
+			      data: {
+			      	dt: moment(date).format('YYYY-MM-DD')
 
-		      }
-		    });
+			  		},
+			      cache: false,
+			      success: function(data){
+			        calendar_ajax(data, project);
+			        $('#calendar_details').modal();
 
-            return false;
-        },
-        eventColor: '#c05e4a',
-        eventTextColor: '#f0f8ff',
-        timeFormat: '',
-        eventSources: [
+			      }
+			    });
+		        return false;
+    		}
+
+
+	    	
+	    },
+	    eventColor: '#257c3c',
+	    eventTextColor: '#fff',
+	    timeFormat: '',
+	    eventSources: [
 	         {
 	             events: function(start, end, timezone, callback) {
 	                 $.ajax({
-	                 url: "<?php echo base_url('admin/get_schedule'); ?>",
+	                 type: "GET",
+	                 url: "<?php echo base_url('admin/get_schedule_hand'); ?>",
 	                 dataType: 'json', 
 	                 data: {
 		                start: start.unix(),
-		                end: end.unix()
+		                end: end.unix(),
+		                project: project
 	                 },
 	                 success: function(msg) {
 	                       var events = msg.events;
@@ -141,8 +163,9 @@ $(document).ready(function() {
 	         },
 	      ]
 
-    });
-});
+	    });
+
+}
 
 function calendar_ajax(date_val){
 	$ajaxData = $.ajax({
@@ -164,5 +187,59 @@ function calendar_ajax(date_val){
 	});
 
 	return $ajaxData;
+}
+
+
+function check_availability(available,formData) {
+	$('.alert').remove();
+	var selectedtime = $(".custom-control-input:checked").val();
+	$('#time').val(selectedtime);
+	console.log(selectedtime);
+	$.ajax({
+		type: 'GET',
+		url: "<?php echo base_url('admin/onclickChange'); ?>",
+		data: {
+			dt: moment($('#selected_dt').val()).format('YYYY-MM-DD'),
+			project: $('#property').val() ,
+			time : $(".custom-control-input:checked").val() ,
+			project_owner : $('#project').val()
+		},
+		dataType:'json',
+		success: function(data){
+			$('#assign_to').val(data.assigned_to);
+			$('#project').val(data.project);
+			console.log(data);
+			if(data.avail == 'true') {
+				$('#modalBtns').show();
+				$('.alert').remove();
+				$('#modalBody').append('<div class="alert alert-success alert-dismissible fade show" role="alert" id="modal_message"> <span id="modal_text">Slot will be reserved, do you wish to continue? </span><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'); 
+			}else{
+				$('#modalBtns').hide();
+				$('#modalBody').append('<div class="alert alert-danger alert-dismissible fade show" role="alert" id="modal_message"> <span id="modal_text">*NOT AVAILABLE* \n Selected date and time will not be saved. Please select and confirm your preferred schedule.</span><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+				// save first option date
+				console.log(formData);
+				$ajaxData = $.ajax({
+					url: "<?= base_url('admin/add_schedule_logs') ?>",
+					method: "POST",
+					data: {
+						data : formData ,
+						customer_number : $('#customer_number').val()
+					},
+					dataType:'json',
+					success:function(data){
+						//$('#modalBody').html(data);
+					},
+					beforeSend:function(){
+						$('.hidden-loader').show();
+					},
+					complete:function(){
+						$('.hidden-loader').hide();
+					}
+
+				});	
+			} 
+			return available;
+		}
+	});
 }
 </script>

@@ -4,6 +4,9 @@
 
   	<div class="container-fluid">
   		<div class="row">
+		  <form action="" method="post" role="form" class="needs-validation">
+			  <input type="hidden" class="form-control" id="role" name = "role" value="">
+		  </form>
 	  		<div class="col-md-2">
 	  			<div class="ht-tm-element card bg-primary text-white mb-3 text-center">
 				  <div class="card-body">
@@ -39,7 +42,6 @@
 				    <p class="card-text">Closed <span class="badge badge-warning badge-pill">40</span></p>
 				  </div>
 				</div>
-
 
 		  	</div>
 		  	<div class="col-md-10">
@@ -147,7 +149,18 @@
 		  		</div>
 		  	</div>
 		  	<div class= "col-md-12">
-		  		<table class="table" id="tickets_table">
+			 <!--  <a href="<?= base_url('admin/my_dashboard_filtered_tickets/'.user('id')) ?>" class="pl-md-0 p-3 text-black">Filter by group tickets</a> -->
+			
+			 <div class="col-md-4 mb-3">
+				<label for="property" >Filter<span style="color:red;"></span></label >
+				    <select class="custom-select d-block w-100" id="role" name="role" onchange="filtered_ticket(this.value);" required>
+				        <option value=""> -- Filter Tickets by Group --</option>
+						<option value="2" <?php if(user('position') == 0){echo '';}elseif(user('position') == 1){echo '';}elseif(user('position') == 2){echo '';}else{echo 'hidden';}  ?> >All Inbound Tickets</option>
+						<option value="3" <?php if(user('position') == 0){echo '';}elseif(user('position') == 1){echo '';}elseif(user('position') == 3){echo '';}else{echo 'hidden';}  ?>>All Outbound Tickets</option>
+						<option value="5" <?php if(user('position') == 0){echo '';}elseif(user('position') == 1){echo '';}elseif(user('position') == 5){echo '';}else{echo 'hidden';}  ?>>All Handover Tickets</option>
+				    </select>
+			 </div>
+				  <table class="table" id="tickets_table">
 				  	<thead class="thead-light">
 					    <tr>
 					      <th scope="col">Ticket No.</th>
@@ -163,7 +176,7 @@
 				  	<tbody>
 				  		<?php foreach($tickets as $ticket): ?>
 					    <tr>
-					      <th scope="row"><a href="<?= base_url('admin/ticket_details/'.$ticket->ticket_id); ?>"> <?= $ticket->ticket_number; ?></a></th>
+						  <th scope="row"><a href="<?= base_url('admin/ticket_details/'.$ticket->ticket_id); ?>"> <?= $ticket->ticket_number; ?></a></th>
 					      <th scope="row"> <?= $ticket->lastname; ?>, <?= $ticket->firstname; ?></th>
 					      <th scope="row"><?= $ticket->category; ?></th>
 					      <th scope="row"><?= $ticket->subject; ?></th>
@@ -173,21 +186,65 @@
 					      <th scope="row">0</th>
 					  	</tr>
 					  <?php endforeach; ?>
-					  
 					</tbody>
 				</table>
 		  	</div>
-
-
 		</div>
-
   	</div>
   </div>
 
   <script type="text/javascript">
   	window.onload = function() {
 	  	$(document).ready(function () {
-	        $('#tickets_table').DataTable();
-	    });
-  	}
+			$('#tickets_table').DataTable({
+				destroy: true , 
+				/* "columnDefs": [ {
+				"targets": 0,
+				"data": "download_link",
+				"render": function ( data, type, row, meta ) {
+				return '<a href="'+data+'">Download</a>';
+				}
+			} ] */
+			});
+		});
+	  }
+	
+	function filtered_ticket(role){
+			$("#role").val(role)
+			console.log($("#role").val());
+			$('#tickets_table').DataTable( {
+					"columnDefs": [ {
+					"targets": 0,
+					"data": "download_link",
+					"render": function ( data, type, row, meta ) {
+					return '<a href="'+data+'">Download</a>';
+					}
+				} ],
+			destroy: true, 
+				"columnDefs": [ {
+				"targets": 0,
+				"data": "download_link",
+				"render": function ( data, type, row, meta ) {
+					return '<a href=<?= base_url('admin/ticket_details/');?>'+row["ticket_id"]+'>'+data+'</a>';
+				}
+			} ],
+			ajax: {
+				url: '<?= base_url('admin/get_ticket_filtered'); ?>',
+				data: {
+					role: role
+				},
+				dataSrc: ''
+			},
+			columns: [
+				{ data: 'ticket_number'},
+				{ data: 'fullname' },
+				{ data: 'category' },
+				{ data: 'subject' },
+				{ data: 'status' },
+				{ data: 'date_created' },
+				{ data: 'date_assigned' },
+				{ data: 'status' }
+			]
+		} );
+	}
   </script>

@@ -4,8 +4,8 @@
 
 
 	<form action="<?= base_url('admin/edit_checking_area_list'); ?>" method="post" role="form" class="needs-validation">
-		<input type="hidden" class="form-control" id="edit_area_id" name = "edit_area_id" value="<?=  $checking_area->id ?>">">
-		<div class="col-md-4 mb-3">
+		<input type="hidden" class="form-control" id="edit_area_id" name = "edit_area_id" value="<?=  $checking_area->id ?>">
+		<div class="col-md-12 mb-3">
 			<h4>Edit Checking Area</h4>
 		</div>
 		<div class="row">

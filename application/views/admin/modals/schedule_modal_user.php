@@ -9,7 +9,7 @@ $assign_to = '';
   foreach ($users as $associate) {
     $associates[] = $associate->user_id;
   }
-  
+
   $scheds = $this->Admin_model->get_schedules_per_date($sched);
   if($scheds) {
     // if with schedule, get all reserved associate per date
@@ -19,18 +19,28 @@ $assign_to = '';
       foreach($datas as $data) :
         $time[] = date("H",strtotime($data->schedule));
         $db_associates[] = $data->assigned_to;
-
+        
       endforeach;
       // findout the associate without schedule yet
       $diff = array_diff($associates, $db_associates);
+/* 
+      $head_assoc = $this->Admin_model->get_head_assoc_per_sched('0' , $diff ,$scheds->schedule);
 
+      foreach($head_assoc as $head_assocs): 
+        $project_code = substr($head_assocs->ticket_number , 0 , strpos($head_assocs->ticket_number, "-"));
+        $time_assoc = date("H",strtotime($head_assocs->schedule));
+
+        $project_to = $this->Admin_model->get_project_id($project_code);
+        $project_from = $this->Admin_model->get_project_id($project_code);
+        
+        $project_distance = $this->Admin_model->get_project_distance($project_from->id , $project_to->id);
+ */
       // disable input without available handover associate left
       if(!$diff && in_array('9',$time)) { $reserved1 = 'NOT AVAILABLE'; } 
       elseif(!$diff && in_array('11',$time)) { $reserved2 = 'NOT AVAILABLE';} 
       elseif(!$diff && in_array('14',$time)) { $reserved3 = 'NOT AVAILABLE';} 
-    endforeach;
 
-    
+  endforeach;
   } else {
     //if no sched, assign to random associate and set time to available
     //$assign_to = array_rand_value($associates,1);
@@ -46,19 +56,19 @@ $assign_to = '';
     <input id="9am" name="schedule_time" value="9" type="radio" class="custom-control-input" 
     required>
     <label class="custom-control-label" for="9am"> 9AM</label>
-    <span style="color:red;font-weight: 600;"><?= $reserved1; ?></span><br>
+    <span style="color:red;font-weight: 600;" id="for9"><?= $reserved1; ?></span><br>
   </div>
   <div class="custom-control custom-radio">
     <input id="11am" name="schedule_time" value="11" type="radio" class="custom-control-input" 
     required>
     <label class="custom-control-label" for="11am"> 11AM</label>
-    <span style="color:red;font-weight: 600;"><?= $reserved2; ?></span><br>
+    <span style="color:red;font-weight: 600;" id="for11"><?= $reserved2; ?></span><br>
   </div>
   <div class="custom-control custom-radio">
     <input id="2pm" name="schedule_time" value="14" type="radio" class="custom-control-input"
     required>
     <label class="custom-control-label" for="2pm"> 2PM</label>
-    <span style="color:red;font-weight: 600;"><?= $reserved3; ?></span><br>
+    <span style="color:red;font-weight: 600;" id="for2"><?= $reserved3; ?></span><br>
   </div>
  
 </div>
