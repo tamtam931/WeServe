@@ -100,13 +100,26 @@ class weserve_sap extends CI_Model {
 			$status = (array) $unit_obj->STATUS;
 			$turnover = (array) $unit_obj->TURNOVER_DATE;
 
-			if (($status['TEXT'] == 'OPEN' || $status['TEXT'] == 'SOLD') && $turnover['QCD_TO_CEG']) {
+			if(($status['TEXT'] == 'OPEN' || $status['TEXT'] == 'SOLD') && ($turnover['QCD_TO_CEG'] != '00000000' && $turnover['OCC_PER_DATE'] != '00000000')) {
+
+				$this->attributes = '';
+
+			} else if(($status['TEXT'] == 'OPEN' || $status['TEXT'] == 'SOLD') && ($turnover['QCD_TO_CEG'] != '00000000' && $turnover['TURN_OVER_DATE'] != '00000000')){
+
+				$this->attributes = '';
+
+			} else if (($status['TEXT'] == 'OPEN' || $status['TEXT'] == 'SOLD') && $turnover['OCC_PER_DATE'] != '00000000') {
 				
 				$this->attributes = '';
 
-			} else {
+			} else if(($status['TEXT'] == 'OPEN' || $status['TEXT'] == 'SOLD') && $turnover['TURN_OVER_DATE'] != '00000000'){
 
+				$this->attributes = '';
 
+			} else if (($status['TEXT'] == 'OPEN' || $status['TEXT'] == 'SOLD') && $turnover['QCD_TO_CEG'] != '00000000') {
+				
+
+				$this->attributes = '';
 			}
 
 
