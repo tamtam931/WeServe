@@ -65,7 +65,7 @@ $route['handover/acceptance_page/:any/:any'] = 'Handover/acceptance_page';
 /*
 	Turnover Dashboard updates
 	Added: Ben Zarmaynine E. Obra
-	Date: 12-18-19
+	Date: 12-19-19
 	
 */
 
