@@ -188,6 +188,63 @@ $(document).ready(function(){
 	/*
 		End
 	*/
+	/*
+		Turnover Dashboard custom script
+		Author: Ben Zarmaynine E. Obra
+		Added: 12-18-18
+
+	*/
+	init_table('#status_details_table');
+
+   $('body').on('click','.search_unit,.get_quotation',function(e){
+   		e.preventDefault();
+
+   		const form = $(this).closest('form');
+   		var url;
+   		var method;
+
+		const classTitle = $(this).attr('class').split(" ");			
+		const btnClass = '.'+classTitle;
+
+   		if (form.length == 1) {
+
+	   		url = form.attr('action');
+	   		method = form.attr('method');
+
+   			data = form.serialize();
+
+   			const getProject = ajaxHTML(url,btnClass,data,method);
+
+   			getProject.done(function(data){
+
+   				$('#app').html(data);
+   				/*
+					Get Counts of each element for Turnover Dashboard
+					
+   				*/
+   				var total_unit = $('.get_quotation').length;
+   				$('.total_unit').text(total_unit);
+
+   			});
+
+
+   		} else {
+
+   			url = $(this).attr('href');
+   			
+   			quotationAjax = ajaxHTML(url,btnClass);
+
+   			quotationAjax.done(function(data){
+
+   				console.log(data);
+
+   			});
+
+   		}
+
+   });
+
+	//end	
 
 });
 
