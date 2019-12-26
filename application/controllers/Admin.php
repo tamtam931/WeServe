@@ -11,6 +11,7 @@ class Admin extends CI_Controller {
         Date: 12-18-19
     */
     private $resource = '';
+    private $unitResource = '';
     //End
 
 	public function __construct() {
@@ -47,19 +48,35 @@ class Admin extends CI_Controller {
         if ($this->input->is_ajax_request()) {
             
             if ($id = $this->input->get('project')) {
-                
+
+                //Get selected Project saved on DB
                 $data['project'] = $this->weserve_sap_project->get($id);
                 
+                //Check if data successfully fetched to store on variable $project
                 if ($project = $data['project']) {
 
                     if (isset($project['project_code_sap']) && isset($project['company_code'])) {
 
-                        $this->unitResource = 'Companies/'.$project['company_code'].'/Towers/'.$project['project_code_sap'].'/Units';
+                        /*
+                            declare uri string for initialization of SAP Interface using CompanyProjectResource function
+                        */
+                        $data['sub_resource_units'] = $this->weserve_sap->CompanyProjectResource('/Units',[
 
+                            'company_code' => $project['company_code'],
+                            'project_code' => $project['project_code_sap']
+
+                        ]);
+
+                        $data['sub_resource_salesOrder'] = $this->weserve_sap->CompanyProjectResource('/SalesOrders',[
+
+                            'company_code' => $project['company_code'],
+                            'project_code' => $project['project_code_sap']
+
+                        ]);
+                        //End
+
+                        //Get All floors saved on DB
                         $data['floors'] = $this->weserve_sap_floor->where('project_code',$project['project_code_sap'])->where('company_code',$project['company_code'])->get_all();
-
-                        $data['sub_resource'] = $this->unitResource;
-
 
 
                     } else {
@@ -78,6 +95,7 @@ class Admin extends CI_Controller {
 
         } else {
 
+            //get all projects saved on DB
             $data['projects'] = $this->weserve_sap_project->as_dropdown('project')->get_all();
             
 

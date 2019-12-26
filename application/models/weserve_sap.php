@@ -4,13 +4,28 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class weserve_sap extends CI_Model {
 
 	private $where_activated = array('deleted_at' => NULL); 
+	private $sub_resource;
+	private $attributes;
 
 	function __construct(){
 
 		parent::__construct();
+		$this->sub_resource = false;
+		$this->attributes = '';
 		$this->load->model('weserve_sap_config');
+		$this->load->model('weserve_status');
+
 
 	}
+
+
+	/*
+		
+		Custom functions: all custom functions outside parent model must be written here
+		Added: 12-23-19
+		Author: Ben Zarmaynine E. Obra
+	
+	*/
 
 	public function all($resource,$params=null){
 
@@ -53,18 +68,59 @@ class weserve_sap extends CI_Model {
 
 	}
 
+	/*
+		Public function to generate custom uri within specific endpoint
+		uri sub_resource: Companies/{{ BUKRS }}/Towers/{{ SWENR }}/{{ Endpoint }}
 
-	public function find($params){
+		Wildcard variable: must contain arrays 'company_code' and 'project_code'
+		Endpoint varibale: URI endpoint (GET and POST parameters is not allowed)
+	*/
+    public function CompanyProjectResource($endpoint=null,$wildcard){
+
+        if ($endpoint) {
+            
+            if ($wildcard['company_code'] && $wildcard['project_code']) {
+                
+                $this->sub_resource = 'Companies/'.$wildcard["company_code"].'/Towers/'.$wildcard["project_code"].$endpoint;
+
+            } 
+
+        }
+
+        return $this->sub_resource;
+    }
+
+	
+
+	public function generateUnitAttributes($unit_obj){
+
+		if ($unit_obj) {
+			
+			$unit_id = $unit_obj->BUKRS;
+			$status = (array) $unit_obj->STATUS;
+			$turnover = (array) $unit_obj->TURNOVER_DATE;
+
+			if (($status['TEXT'] == 'OPEN' || $status['TEXT'] == 'SOLD') && $turnover['QCD_TO_CEG']) {
+				
+				$this->attributes = '';
+
+			} else {
 
 
+			}
+
+
+		}
+
+		return $turnover;
 
 	}
 
+	//End
 
-	public function save(){
-
-
-	}
+	/*
+		Private function for Guzzle HTTP initialization
+	*/
 
 	private function weserveSAPinit($params){
 
@@ -90,7 +146,9 @@ class weserve_sap extends CI_Model {
 
 			return false;
 		}
-	}	
+	}		
+
+	//End	
 
 
 }

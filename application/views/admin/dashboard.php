@@ -1,150 +1,25 @@
 <?= $this->load->view('top', '', TRUE) ?>
-<div class="container py-5 mb5">
-  <h3 class="mb-3">TURN OVER DASHBOARD</h3>
+<div class="container">
   	<div class="row">
-  		<div class="col-md-8">
-		  	<table class="table table-bordered" id="turnover_table">
-			  <tbody>
-			  	<?php foreach($unit_floors as $floor): ?>
-			    <tr>
-				    <th scope="row"><?= $floor->unit_number ?></th>
-				     <?php $units = $this->Admin_model->get_units_per_floor($floor->unit_number); ?>
-			    	<?php foreach($units as $unit): ?>
-			    		<?php $design = $this->Admin_model->get_color_status_per_unit($unit->status); ?>
-				    	<td style="background-color: <?= $design->color; ?>"><a href="<?= base_url('admin/dashboard/'.$unit->unit_number.$unit->unit_desc); ?>"><?= $unit->unit_number; ?><?= $unit->unit_desc; ?></a></td>
+  		<h3 class="mt-3">TURN OVER DASHBOARD</h3>
+  		<div class="col-12 col-sm-12 col-md-12 col-lg-12">
+			<div class="row">
+		    	<form action="<?= base_url('admin/dashboard') ?>" method="GET" role="form">
+					<div class="form-group">
+						<?= form_label('Project', 'project') ?>
+						<div class="input-group">
+							<?= form_dropdown('project',$projects,null,['id' => 'project','class' => 'form-control','placeholder' => 'Project List']) ?>
+							<div class="input-group-append">
+								<?= form_submit('submit','SEARCH',['class' => 'search_unit btn btn-outline-dark','id' => 'search_unit']) ?>
+							</div>        					
+						</div>
+					</div>
+				</form>				
+			</div>  			
+  		</div>
+	</div>
+	<hr>
+	<div class="row" id="app">
 
-			      	<?php endforeach; ?>
-			    </tr>
-				<?php endforeach; ?>
-
-			  </tbody>
-			</table>
-		</div>
-		<div class="col-md-4">
-			<div class="card text-white border-primary mb-3">
-			  <div class="card-body">
-		  		<div class="row">
-		  			<table class="table table-bordered text-center" id="status_table">
-		  				<thead>
-		  					<tr>
-						      <th scope="col"></th>
-						      <th scope="col">Current Status</th>
-						      <th scope="col">Total</th>
-						    </tr>
-		  				</thead>
-			  			<tbody>
-			  				<tr>
-				    			<th scope="row" colspan="2">Total Unit Inventory</th>
-				    			<td>188</td>
-			    			</tr>
-			  			<?php $statuses = $this->Admin_model->get_all_dashboard_status(); $cnt = 0;?>
-			  			<?php foreach($statuses as $status): ?>
-			  				<?php $cnt = $cnt +1; ?>
-			  				<?php if($cnt == 1) :?>
-			  					<th colspan="2"><a href="<?= base_url('admin/dashboard/'.$status->status_description); ?>">Not Ready for Turnover</a></th>
-			  					<td>23</td>
-			  				<?php elseif($cnt == 8) :?>
-			  					<th colspan="2">Ready for Turnover</th>
-			  					<td>13</td>
-			  				<?php elseif($cnt == 11) :?>
-			  					<th colspan="2">With Concern</th>
-			  					<td>11</td>
-			  				<?php elseif($cnt == 14) :?>
-			  					<th colspan="2">Complete Transaction</th>
-			  					<td>54</td>
-			  				<?php endif;?>
-			  				<tr>
-				    			<td scope="row" style="background-color: <?= $status->color; ?>"><a href="<?= base_url('admin/dashboard/'.$status->status_description); ?>"><?= $status->status_description; ?></a></td>
-				    			<td>1</td>
-				    			<td>5</td>
-
-			    			</tr>
-			    			
-
-			  			<?php endforeach; ?>
-				  		</tbody>
-				  	</table>
-			           
-		    	</div>  
-			  </div>
-			</div>
-		</div>
-
-		<div class= "col-md-12">
-	  		<table class="table" id="status_details_table">
-			  	<thead class="thead-light">
-				    <tr>
-				      <th scope="col">Unit Owner</th>
-				      <th scope="col">Unit/Parking Number</th>
-				      <th scope="col">Related Unit/Parking Number</th>
-				      <th scope="col">Status</th>
-				      <th scope="col">Accepted by QCD</th>
-				      <th scope="col">Accepted by Handover</th>
-				      <th scope="col">Approved TOAS</th>
-				      <th scope="col">Building Turnover</th>
-				      <th scope="col">Sending of Schedule</th>
-				      <th scope="col">Turnover Schedule</th>
-				      <th scope="col">Accepted by Unit Owner</th>
-				      <th scope="col">Accepted with Punchlist</th>
-				      <th scope="col">Not Accepted with Punchlist</th>
-				      <th scope="col">Not Accepted with Other Concerns</th>
-				      <th scope="col">Deemed legally accepted</th>
-
-				    </tr>
-			  	</thead>
-			  	<tbody>
-				    <tr>
-				      <th scope="row">Viel Parale</th>
-				      <th scope="row">8A</th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				  	</tr>
-
-				  	<tr>
-				       <th scope="row">Jasmine Tookes</th>
-				      <th scope="row">28A</th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				      <th scope="row"></th>
-				  	</tr>
-				</tbody>
-			</table>
-	  	</div>
-  	</div>
-
-  </div>
-
-    <script type="text/javascript">
-  	window.onload = function() {
-  		var url = document.URL;
-	    $(document).ready(function() {
-		   var table = $('#status_details_table').DataTable();
-		   table
-		        .columns(1)
-		        .search('^'+url.substr(url.lastIndexOf('/') + 1)+'$', true, false) //last url segment
-		        .draw();
-		});
-
-  	}
-  </script>
+	</div>
+</div>
