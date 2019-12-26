@@ -219,7 +219,10 @@ $(document).ready(function(){
    			getProject.done(function(data){
 
    				$('#app').html(data);
-
+   				/*
+					Get Counts of each element for Turnover Dashboard
+					
+   				*/
    				var total_unit = $('.get_quotation').length;
    				$('.total_unit').text(total_unit);
 
