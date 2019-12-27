@@ -19,6 +19,9 @@ class Admin extends CI_Controller {
         $this->user_id = user('id');
         $this->role_id = user('role');
         $this->load->library('user_agent');
+        $this->load->model('weserve_sap');
+        $this->load->model('weserve_sap_project');
+        $this->load->model('weserve_sap_floor');
     }
     public function index($data = null) {
       

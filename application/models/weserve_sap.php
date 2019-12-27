@@ -13,8 +13,6 @@ class weserve_sap extends CI_Model {
 		$this->sub_resource = false;
 		$this->attributes = '';
 		$this->load->model('weserve_sap_config');
-		$this->load->model('weserve_status');
-
 
 	}
 

@@ -1265,7 +1265,7 @@ class Admin_model extends CI_Model {
     $this->db->from('tbl_turnover_schedule');
     $this->db->join('tbl_users','tbl_turnover_schedule.assigned_to = tbl_users.id');
     $this->db->where('tbl_users.position' , '10');
-    $this->db->where('schedule >=' , $date ,);
+    $this->db->where('schedule >=' , $date);
     return $this->db->get()->result();
   }
 
