@@ -1,5 +1,9 @@
 <?= $this->load->view('top', '', TRUE) ?>
-
+<!--
+	Updated: from weserve_merge
+	date: 12-27-19
+	Author: Ben Zarmaynine E. Obra
+-->
 <div class="container py-5 mb5">
   <h3 class="mb-3">ADMINISTRATION</h3>
 
