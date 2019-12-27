@@ -22,6 +22,7 @@ class Admin extends CI_Controller {
         $this->load->model('weserve_sap');
         $this->load->model('weserve_sap_project');
         $this->load->model('weserve_sap_floor');
+        $this->load->model('weserve_sap_project');
     }
     public function index($data = null) {
       
