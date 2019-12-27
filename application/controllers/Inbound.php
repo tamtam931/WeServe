@@ -1,20 +1,24 @@
 <?php
-
+/*
+  Updated: from weserve_merge
+  date: 12-27-19
+  Author: Ben Zarmaynine E. Obra
+*/
 
 class Inbound extends CI_Controller {
     
     public $user_id = '';
     public $role_id = '';
 
-	public function __construct() {
+    public function __construct() {
         parent::__construct();
         $this->user_id = user('id');
         $this->role_id = user('role');
         $this->load->library('user_agent');
     }
-	public function index($data = null) {
+    public function index($data = null) {
       
-	}
+    }
 
    public function main() {
         $this->load->view('header');
@@ -56,6 +60,7 @@ class Inbound extends CI_Controller {
    }
 
     public function schedule_specific() {
+
         $this->load->view('header');
         $this->load->view('inbound_associate/schedule_specific');
    }
@@ -73,16 +78,17 @@ class Inbound extends CI_Controller {
    }
 
    public function ticket_details() {
-          $data = array(
-             'ticket_details' => $this->Admin_model->get_ticket_by_id($this->uri->segment(3))
-
-        );
-        $this->load->view('header');
-        $this->load->view('inbound_associate/ticket_details', $data);
-        $this->load->view('footer');
+      $ticket = $this->Admin_model->get_ticket_by_id($this->uri->segment(3));
+      $data = array(
+          'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket->ticket_number, $ticket->project_code),
+          'ticket_details' => $this->Admin_model->get_ticket_by_id($this->uri->segment(3))
+      );
+      $this->load->view('header');
+      $this->load->view('inbound_associate/ticket_details', $data);
+      $this->load->view('footer');
    }
 
-    public function add_schedule() {
+     public function add_schedule() {
 
         $user_id = $this->input->post('logged_user');
         $customer_number = $this->input->post('customer_number');
@@ -96,7 +102,7 @@ class Inbound extends CI_Controller {
         $new_dt = $dt->setTime(intval($time), 00);
 
         $tickets = $this->Admin_model->get_all_tickets();
-        $ticket_number = $project .'-'. date("Y"). '-' .sprintf("%'.05d\n", count($tickets)+1);
+        $ticket_number = trim($project .'-'. date("Y"). '-' .sprintf("%'.05d\n", count($tickets)+1));
 
         
         // get all asscoiates withotu schedule specific datetime
@@ -155,37 +161,58 @@ class Inbound extends CI_Controller {
         }
 
        if($insert_id > 0) {
-            // create ticket - random assigning to outbound associate
+        
+
+            // create ticket - random assigning to handover associate
           $o_associates = array();
-            $outbounds = $this->Admin_model->get_all_outbound_associate();
+            $outbounds = $this->Admin_model->get_all_handover_associate();
             foreach ($outbounds as $outbound) {
                 $o_associates[] = $outbound->user_id;
             }
 
-            // $outbound_rand = array_rand($o_associates);
-            // $outbound_assigned = $o_associates[$outbound_rand];
+            $outbound_rand = array_rand($o_associates);
+            $outbound_assigned = $o_associates[$outbound_rand];
             
-            // $insert_ticket = array(
-            //   'ticket_number' => $ticket_number,
-            //   'customer_number' => $customer_number,
-            //   'created_by' => $user_id,
-            //   'category' => 'Turnover',
-            //   'subject' => 'For Callout',
-            //   'assigned_to' => $outbound_assigned,
-            //   'date_assigned' => date("Y/m/d H:i s")
-            // );
+            // check if with existing ticket
+            // $check_ticket = $this->Admin_model->get_ticket_by_customer_number($customer_number);
+            // if(!$check_ticket) {
+               $insert_ticket = array(
+                'ticket_number' => $ticket_number,
+                'customer_number' => $customer_number,
+                'created_by' => $user_id,
+                'category' => 'Turnover',
+                'subject' => 'For Schedule Confirmation',
+                'assigned_to' => $outbound_assigned,
+                'date_assigned' => date("Y/m/d H:i s")
+              );
 
-            // $this->Admin_model->add_ticket($insert_ticket);
+              $ticket_num = $this->Admin_model->add_ticket($insert_ticket);
+            // } else {
+            //     $this->Admin_model->update_ticket_subject($ticket_number, $outbound_assigned, "TURNOVER", "FOR TURNOVER");
+            // }
+           
+             //update ticket subject
+            $this->Admin_model->update_ticket_subject_only($ticket_number,"TURNOVER", "FOR TURNOVER");
+              // add to logs
+            $description = "Inbound Associate selected a turnover schedule for Unit Owner";
+            $tix = $this->Admin_model->get_ticket_by_id($ticket_num);
 
-            // add to logs
-            // EMAIL/ SMS TO OUTBOUND
+            $act_data = array(
+              'ticket_id' => $tix->ticket_id,
+              'description' => $description,
+              'created_by' => user('id'),
+              'status' => 0
+            );
+            $this->Admin_model->add_activity_log($act_data);
 
+            // EMAIL/ SMS TO HANDOVER
+             $user = $this->Admin_model->get_user_by_id($outbound_assigned);
             $message = "THE TICKET NUMBER " .$ticket_number. " HAS BEEN ASSIGNED TO YOU. CLICK HERE FOR MORE INFO" .base_url('/outbound/ticket_details/'.$insert_id);
-            $return_email = $this->send_email($detail->email_address, 'UNIT TURNOVER SCHEDULE', $message);
+            $return_email = $this->send_email($user->email_address, 'UNIT/PARKING TURNOVER', $message);
 
             // EMAIL/SMS TO UNIT OWNER
-            $message = "THIS IS A SAMPLE EMAIL NOTIFICATION SUBJECT TO CHANGE";
-            $return_email = $this->send_email($detail->email_address, 'UNIT TURNOVER SCHEDULE', $message);
+            $message = "TURNOVER SCHEDULE HAS BEEN BOOKED";
+            $return_email = $this->send_email($detail->email_address, 'UNIT/PARKING TURNOVER', $message);
             $return_sms = $this->send_sms($detail->mobile_number, $message);
             if($return_email == true) { // && $return_sms == true
                 echo "<script type='text/javascript'>alert('SMS and Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.');</script>";
@@ -197,25 +224,89 @@ class Inbound extends CI_Controller {
         }
     }
   
-    public function schedule_date() {
-        $data = array(
-            'sched' => '',
-            'avail1' => '',
-            'avail2' => '',
-            'avail3' => '',
-            'avail4' => '',
-            'reserved1' => '',
-            'reserved2' => '',
-            'reserved3' => '',
-            'reserved4' => '',
-            'assign_to' => '' 
-        );
+    public function add_ticket_note() {
+      $ticket_id = $this->input->post('ticket_id');
+      $ticket_number = $this->input->post('ticket_number');
+      $view_status = $this->input->post('status');
+      $team_huddle = $this->input->post('team_huddle');
+      $note = $this->input->post('note');
+      $filename  = $ticket_number . '-NOTE';
 
-        $this->load->view('inbound_associate/modals/schedule_modal', $data);
-        /* if($this->input->is_ajax_request()) {
+       $photo = '';
+      if($_FILES['capture_img']) {
+        $image = $this->do_upload( 'capture_img', '*','./uploads/', $filename);
+       
+        $photo = '';
+        if(isset($image["error_msg"])) {
+          echo "<script type='text/javascript'>alert('ERROR: ".$image["error_msg"]."');</script>";
+         
+        } else {
+          $photo = $image['upload_data']['file_name'];
+        }
+      }
+      
+
+      $insert_data = array(
+        'ticket_number' => $ticket_number,
+        'view_status' => $view_status,
+        'team_huddle' => $team_huddle,
+        'note' => $note,
+        'attachment' => $photo,
+        'created_by' => user('id')
+      );
+      $insert_id = $this->Admin_model->add_ticket_note($insert_data);
+
+      if($insert_id > 0) {
+         // ADD TO ACTIVITY 
+        if($photo) {
+            $photo_url = base_url('uploads/'.$photo);
+            $description = $note . "<br> <a href='".$photo_url."'>Attachment</a>";
+        } else {
+            $description = $note;
+        }
+
+        $act_data = array(
+          'ticket_id' => $ticket_id,
+          'description' => $description,
+          'created_by' => user('id'),
+          'status' => $view_status
+        );
+        $this->Admin_model->add_activity_log($act_data);
+
+        
+        echo "<script type='text/javascript'>alert('Note has been successfully added.');</script>";
+        redirect('inbound/ticket_details/'.$ticket_id, 'refresh');
+      }
+
+       
+    
+    }
+
+    public function do_upload( $field_name = null, $type = null, $path = null, $filename = null ) {
+
+       $config['upload_path'] = $path;
+       $config['allowed_types'] = $type;
+       $config['max_size']    = 0;
+       $config['file_name'] = $filename; //preg_replace('/[^A-Za-z0-9]/', "", $filename);
+
+       $this->load->library('upload', $config);
+       $this->upload->initialize($config);
+       if ( ! $this->upload->do_upload($field_name)) {
+           $data['error_msg'] = $this->upload->display_errors();
+       }
+       else {
+           $data = array('upload_data' => $this->upload->data());
+       }
+       return $data;
+
+   }
+
+
+    public function schedule_date() {
+        if($this->input->is_ajax_request()) {
             $sched = $this->input->get("dt");
             $project = $this->input->get("project");
-            
+
             $time = array(); $associates = array();  $db_associates = array();
             $reserved1 = ''; $reserved2 = ''; $reserved3 = ''; $reserved4 = ''; $avail1='true'; $avail2='true'; $avail3='true'; $avail4='true';
             $default_time = array('9','11','14','16');
@@ -227,7 +318,6 @@ class Inbound extends CI_Controller {
               }
               
               $scheds = $this->Admin_model->get_schedules_per_date($sched);
-              
               if($scheds) {
                 // if with schedule, get all reserved associate per date
                 foreach($scheds as $sched) :
@@ -255,6 +345,13 @@ class Inbound extends CI_Controller {
                 $time = array();
               }
 
+
+
+
+
+
+
+
             $data = array(
                 'sched' => $sched,
                 'avail1' => $avail1,
@@ -271,7 +368,7 @@ class Inbound extends CI_Controller {
             $this->load->view('inbound_associate/modals/schedule_modal', $data);
         } else {
             redirect('inbound/my_dashboard/', 'refresh');
-        } */
+        }
     }
 
     public function send_email($email, $subject, $message){
@@ -322,8 +419,8 @@ class Inbound extends CI_Controller {
 
     }
 
-     public function dec_enc($string, $action) {
-       
+
+   public function dec_enc($string, $action) {
         $secret_key = 'my_simple_secret_key';
         $secret_iv = 'my_simple_secret_iv';
      
@@ -341,9 +438,9 @@ class Inbound extends CI_Controller {
      
         return $output;
     }
-  
-    //For the Scheduling
-    public function onclickChange(){
+  //Emil Added
+     //For the Scheduling
+     public function onclickChange(){
 
         $sched = $this->input->get("dt");
         $date = strtotime($this->input->get('dt'));
@@ -395,132 +492,74 @@ class Inbound extends CI_Controller {
         $availability["assigned_to"] = $hand_over_assign;
 
 
-        //If has a schedule
-        if (!empty($hand_assoc_sched)){
-            foreach($hand_assoc_sched as $hand_assoc_scheds){
-                $sched = $hand_assoc_scheds->schedule;
-                $sched_chcker[] = $hand_assoc_scheds->schedule;
-                $ticket_number = $hand_assoc_scheds->ticket_number;
-                $availability["assoc_assigned_project"] = strtok($ticket_number, '-');
-                $project_code = strtok($ticket_number, '-');
-                
-                
-                $sched_date_where_clausehed = $new_dt->format('Y-m-d') . ' ' . '09:00:00';
-                
-                if (in_array($new_dt->format('Y-m-d H:i:s') , $sched_chcker)){
-                    $availability['in_array_sched'] = $sched_chcker;
-                    $availability['reserved'] = 'NOT AVAILABLE'; $availability['avail']= 'false';
-                }else{
-                    $sched_date_where_clause_sched_9 = $new_dt->format('Y-m-d') . ' ' . '09:00:00';
-                    $sched_date_where_clause_sched_11 = $new_dt->format('Y-m-d') . ' ' . '11:00:00';
-                    $sched_date_where_clause_sched_14 = $new_dt->format('Y-m-d') . ' ' . '14:00:00';
-                    $sched_date_where_clause_sched_16 = $new_dt->format('Y-m-d') . ' ' . '16:00:00';
-                    if ($time == '9' ){
-                        $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
-                        if($distance_calculated > 10){
-                            $availability['avail'] = 'false';
-                            $availability['reserved'] = 'NOT AVAILABLE';
-                            $availability['More than 10KM in selected time is 9AM'] = '';
-                        }else{
-                            $availability['avail']= 'true';
-                            $availability['reserved'] = '';
-                            $availability['Less than 10KM in selected time is 9AM -> time selected is 9'] = '';
-                        }
-                    }else if ($time == '11'){
-                        $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
-                        if($distance_calculated > 10){
-                            $availability['avail'] = 'false';
-                            $availability['reserved'] = 'NOT AVAILABLE';
-                            $availability['More than 10KM in selected time is 11AM'] = '';
-                        }else{
-                            $availability['avail'] = 'true';
-                            $availability['reserved'] = '';
-                            $availability['Less than 10KM in selected time is 11AM'] = '';
-                        }
-                    }else if ($time == '14'){
-                        $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
-                        if($distance_calculated > 10){
-                            $availability['avail'] = 'false';
-                            $availability['More than 10KM(Schedule is 9AM) in selected time is 14AM'] = '';
-                            $distance_calculateds = $this->get_user_preference($sched_date_where_clause_sched_11 , $hand_over_assign , $distination);
-                            if ($distance_calculateds > 10){
-                                $availability['avail'] = 'false';
-                                $availability['reserved'] = 'NOT AVAILABLE';
-                                $availability['More than 10KM(Schedule is 11AM) in selected time is 14AM'] = '';
-                            }else{
-                                $availability['avail'] = 'true';
-                                $availability['reserved'] = '';
-                            }
-                        }else{
-                            $distance_calculated_no_9 = $this->get_user_preference($sched_date_where_clause_sched_11 , $hand_over_assign , $distination);
-                            if ($distance_calculated_no_9 > 10){
-                                $availability['avail'] = 'false';
-                                $availability['reserved'] = 'NOT AVAILABLE';
-                                $availability['More than 10KM(Schedule is 11AM No Sched in 9AM) in selected time is 14AM'] = '';
-                            }else{
-                                $availability['avail'] = 'true';
-                                $availability['reserved'] = '';
-                                $availability['Less than 10KM in selected time is 9AM No Sched in 9AM -> time selected is 14-else'] = $sched_date_where_clause_sched_9 . $hand_over_assign . $distination;
-                            }
-                        }
-                    }else if ($time == '16'){
-                        $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
-                        $distance_calculated_11 = $this->get_user_preference($sched_date_where_clause_sched_11 , $hand_over_assign , $distination);
-                        $distance_calculated_14 = $this->get_user_preference($sched_date_where_clause_sched_14 , $hand_over_assign , $distination);
-                        
-                        if($distance_calculated > 10){
-                            $availability['avail'] = 'false';
-                            $availability['More than 10KM(Schedule is 9AM) in selected time is 14AM'] = '';
-                            $distance_calculateds = $this->get_user_preference($sched_date_where_clause_sched_11 , $hand_over_assign , $distination);
-                            $distance_calculated_14 = $this->get_user_preference($sched_date_where_clause_sched_14 , $hand_over_assign , $distination);
-                            
-                            if ($distance_calculateds > 10){
-                                $availability['avail'] = 'false';
-                                $availability['reserved'] = 'NOT AVAILABLE';
-                                $availability['More than 10KM(Schedule is 11AM) in selected time is 14AM'] = '';
-                                if ($distance_calculated_14 > 10){
-                                    $availability['avail'] = 'false';
-                                    $availability['reserved'] = 'NOT AVAILABLE';
-                                    $availability['More than 10KM(Schedule is 11AM) in selected time is 14AM'] = '';
-                                }else{
-                                    $availability['avail'] = 'true';
-                                    $availability['reserved'] = '';
-                                }
-                            }else if ($distance_calculated_14 > 10){
-                                $availability['avail'] = 'false';
-                                $availability['reserved'] = 'NOT AVAILABLE';
-                                $availability['More than 10KM(Schedule is 2PM) in selected time is 16PM'] = '';
-                            }
-                            else{
-                                $availability['avail'] = 'true';
-                                $availability['reserved'] = '';
-                            }
-                        }else if ($distance_calculated_11 > 10){
-                            $distance_calculated_no_14s = $this->get_user_preference($sched_date_where_clause_sched_14 , $hand_over_assign , $distination);
-                            if ($distance_calculated_no_14s > 10){
-                                $availability['avail'] = 'false';
-                                $availability['reserved'] = 'NOT AVAILABLE';
-                                $availability['More than 10KM(Schedule is 2PM No Sched in 11AM) in selected time is 2PM'] = '';
-                            }else{
-                                $availability['avail'] = 'true';
-                                $availability['reserved'] = '';
-                                $availability['Less than 10KM in selected time is 2PM No Sched in 11AM -> time selected is 14-else'] = $sched_date_where_clause_sched_9 . $hand_over_assign . $distination;
-                            }
-                        }else{
-                            $distance_calculated_no_14 = $this->get_user_preference($sched_date_where_clause_sched_14 , $hand_over_assign , $distination);
-                            if ($distance_calculated_no_14 > 10){
-                                $availability['avail'] = 'false';
-                                $availability['reserved'] = 'NOT AVAILABLE';
-                                $availability['More than 10KM(Schedule is 2PM No Sched in 11AM) in selected time is 2PM'] = '';
-                            }else{
-                                $availability['avail'] = 'true';
-                                $availability['reserved'] = '';
-                                $availability['Less than 10KM in selected time is 4PM No Sched in 2PM -> time selected is 16-else'] = $sched_date_where_clause_sched_9 . $hand_over_assign . $distination;
-                            }
-                        }
+       //If has a schedule
+       if (!empty($hand_assoc_sched)){
+        foreach($hand_assoc_sched as $hand_assoc_scheds){
+            $sched = $hand_assoc_scheds->schedule;
+            $sched_chcker[] = $hand_assoc_scheds->schedule;
+            $ticket_number = $hand_assoc_scheds->ticket_number;
+            $availability["assoc_assigned_project"] = strtok($ticket_number, '-');
+            $project_code = strtok($ticket_number, '-');
+            
+            
+            $sched_date_where_clausehed = $new_dt->format('Y-m-d') . ' ' . '09:00:00';
+            
+            if (in_array($new_dt->format('Y-m-d H:i:s') , $sched_chcker)){
+                $availability['in_array_sched'] = $sched_chcker;
+                $availability['reserved'] = 'NOT AVAILABLE'; $availability['avail']= 'false';
+            }else{
+                $sched_date_where_clause_sched_9 = $new_dt->format('Y-m-d') . ' ' . '09:00:00';
+                $sched_date_where_clause_sched_11 = $new_dt->format('Y-m-d') . ' ' . '11:00:00';
+                $sched_date_where_clause_sched_14 = $new_dt->format('Y-m-d') . ' ' . '14:00:00';
+                $sched_date_where_clause_sched_16 = $new_dt->format('Y-m-d') . ' ' . '16:00:00';
+                if ($time == '9' ){
+                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
+                    if($distance_calculated > 10){
+                        $availability['avail'] = 'false';
+                        $availability['reserved'] = 'NOT AVAILABLE';
+                        $availability['More than 10KM in selected time is 9AM'] = '';
+                    }else{
+                        $availability['avail']= 'true';
+                        $availability['reserved'] = '';
+                        $availability['Less than 10KM in selected time is 9AM -> time selected is 9'] = '';
+                    }
+                }else if ($time == '11'){
+                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
+                    if($distance_calculated > 10){
+                        $availability['distance'] = $distance_calculated;
+                        $availability['avail'] = 'false';
+                        $availability['reserved'] = 'NOT AVAILABLE';
+                        $availability['More than 10KM in selected time is 11AM'] = '';
+                    }else{
+                        $availability['distance'] = $distance_calculated;
+                        $availability['avail'] = 'true';
+                        $availability['reserved'] = '';
+                        $availability['Less than 10KM in selected time is 11AM'] = '';
+                    }
+                }else if ($time == '14'){
+                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_11 , $hand_over_assign , $distination);
+                    if($distance_calculated > 10){
+                        $availability['avail'] = 'false';
+                        $availability['More than 10KM(Schedule is 9AM) in selected time is 14AM'] = '';   
+                    }else{
+                        $availability['avail'] = 'true';
+                        $availability['reserved'] = '';
+                    }
+                }else if ($time == '16'){
+                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
+                    $distance_calculated_11 = $this->get_user_preference($sched_date_where_clause_sched_11 , $hand_over_assign , $distination);
+                    $distance_calculated_14 = $this->get_user_preference($sched_date_where_clause_sched_14 , $hand_over_assign , $distination);
+                    
+                    if ($distance_calculated_14 > 10){
+                        $availability['avail'] = 'false';
+                        $availability['More than 10KM(Schedule is 2PM) in selected time is 4PM'] = ''; 
+                    }else{
+                        $availability['avail'] = 'true';
+                        $availability['reserved'] = '';
                     }
                 }
             }
+        }
         }else{
             $availability['reserved'] = ''; $availability['avail']= 'true';
         }
@@ -530,7 +569,7 @@ class Inbound extends CI_Controller {
         $availability['time'] = $time;
         $availability['data'] = $new_dt->format('Y-m-d H:i:s');
         echo json_encode($availability);
-    }
+     }
 
     public function distance($project_code , $distination){
         //Get the Project id of the hand over assoc sched on the user selected date.
@@ -546,18 +585,24 @@ class Inbound extends CI_Controller {
     public function get_user_preference($ched , $assigned_to , $project_distination){
         $distance = '0';
         $schedule = $this->Admin_model->get_sched_of_outbond_assoc($ched , $assigned_to);
-        if (!empty($schedule)){
+        if ($schedule !== '0'){
             foreach($schedule as $data){
                 $ticket_number = $data->ticket_number;
                 $project_code = strtok($ticket_number, '-');
                 //Get the Project id of the hand over assoc sched on the user selected date.
                 $project_id_of_assoc_sched_assign = $this->Admin_model->get_project_id_assoc($project_code);
-                //Get the project if of unit owner. 
                 $assoc_distination = $this->Admin_model->get_project_id_assoc($project_distination);
-                //Get the distance base on the project id.
-                $distance_project = $this->Admin_model->get_distance_project($project_id_of_assoc_sched_assign->id , $assoc_distination->id);   
-                $distance = $distance_project->distance;
-                return $distance;
+                foreach($project_id_of_assoc_sched_assign as $data1){
+                    $id = $data1->id;
+                    foreach($assoc_distination as $data2){
+                        $id2 = $data2->id;
+                        $distance_project = $this->Admin_model->get_distance_project($id , $id2);   
+                        foreach($distance_project as $data_dis){
+                            $distance = $data_dis->distance;
+                            return $distance;
+                        }
+                    }
+                }
             }
         }else{
             return $distance;
@@ -585,16 +630,75 @@ class Inbound extends CI_Controller {
         $tickets = $this->Admin_model->get_all_tickets();
         $ticket_number = $project .'-'. date("Y"). '-' .sprintf("%'.05d\n", count($tickets)+1);
 
-        $insert_data = array(
-            'customer_number' => $customer_number,
-            'ticket_number' => $ticket_number,
-            'schedule' => $new_dt->format('Y-m-d H:i:s'),
-            'sequence' => $sequence,
-            'assigned_to' => $assign_to,
-            'status' => 0
-        );
+        //Emil update for reservation of ticket
+        $chck_ticket = $this->Admin_model->check_ticket_number($ticket_number);
 
-        $insert_id = $this->Admin_model->add_turnover_schedule($insert_data);
+        //If the ticket has no sched
+        if(count($chck_ticket == 0)){
+            $insert_datas = array(
+                'customer_number' => $customer_number,
+                'ticket_number' => $ticket_number,
+                'schedule' => $new_dt->format('Y-m-d H:i:s'),
+                'sequence' => $sequence,
+                'assigned_to' => $assign_to,
+                'status' => 0);
+
+            $this->Admin_model->add_turnover_schedule($insert_datas);
+        }else{
+            //If the ticket has sched update tikcet old ticket and insert the new one 
+            foreach($chck_ticket as $ticket_data){
+                $update_ticket = $this->Admin_model->update_ticket_for_resched($ticket_data->ticket_number);
+                
+                //Notify the second in line.
+                $chck_in_line = $this->Admin_model->get_sequence_in_line($ticket_data->schedule);
+                foreach($chck_in_line as $second){
+                    $customer_number_line = $second->customer_number;
+                    $customer_number_lines = $this->Admin_model->get_customer_by_custnum($customer_number_line);
+                    foreach ($customer_number_lines as $customer_details_line) {
+                         $email_cust = $customer_details_line->email_address;
+
+                         $message = "THE SLOT HAS BEEN OPEN...";
+                         $return_email = $this->send_email($email_cust, 'WESERVE - OPEN SLOT', $message);
+
+                         if($return_email == true) { // && $return_sms == true
+                            echo "<script type='text/javascript'>alert('SMS and Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.');</script>";
+                            //redirect('inbound/schedule/', 'refresh');
+                         }else {
+                            echo "<script type='text/javascript'>alert('Failure to send the email notification.');</script>";
+                            //redirect('inbound/schedule/', 'refresh');
+                         }
+                    }
+                }
+            }
+
+            $insert_data = array(
+                'customer_number' => $customer_number,
+                'ticket_number' => $ticket_number,
+                'schedule' => $new_dt->format('Y-m-d H:i:s'),
+                'sequence' => $sequence,
+                'assigned_to' => $assign_to,
+                'status' => 0
+            );
+            $insert_id = $this->Admin_model->add_turnover_schedule($insert_data);
+
+              // ADD ACTIVITY
+            $description = "The schedule has been re-scheduled to " . $new_dt->format('Y-m-d H:i:s') ;
+            $act_data = array(
+                'ticket_id' => $ticket_id,
+                'description' => $description,
+                'created_by' => user('id'),
+                'status' => 1
+            );
+            $this->Admin_model->add_activity_log($act_data);
+        }
+    
+/* 
+        if(may schedule na ung ticket) {
+            // update
+        } else if(wala pa sched ung ticket) {
+            
+        }*/
+       
         // check if there's unit/parking in certain project qualified for turnover
         $detail = $this->Admin_model->get_customer_by_custnum($customer_number);
         $check_other_units = $this->Admin_model->get_customer_turnover_date_by_tin($detail->tin, $new_dt->format('Y-m-d H:i:s'), $detail->project, $customer_number);
@@ -615,56 +719,70 @@ class Inbound extends CI_Controller {
             }
         }
 
-       if($insert_id > 0) {
-            // create ticket - random assigning to outbound associate
-          $o_associates = array();
-            $outbounds = $this->Admin_model->get_all_outbound_associate();
-            foreach ($outbounds as $outbound) {
-                $o_associates[] = $outbound->id;
-            }
-
-            $outbound_rand = array_rand($o_associates);
-            $outbound_assigned = $o_associates[$outbound_rand];
-            
-        /*     $insert_ticket = array(
-              'ticket_number' => $ticket_number,
-              'customer_number' => $customer_number,
-              'created_by' => $user_id,
-              'category' => 'Turnover',
-              'subject' => 'For Schedule Confirmation',
-              'assigned_to' => $outbound_assigned,
-              'date_assigned' => date("Y/m/d H:i s")
-            );
-
-            $this->Admin_model->add_ticket($insert_ticket); */
-
+        if($insert_id > 0) {
+            //update ticket subject
+            $this->Admin_model->update_ticket_subject_only($ticket_number,"TURNOVER", "FOR TURNOVER");
             // add to logs
-            // EMAIL/ SMS TO OUTBOUND
-
-            $message = "THE TICKET NUMBER " .$ticket_number. " HAS BEEN ASSIGNED TO YOU. CLICK HERE FOR MORE INFO" .base_url('/outbound/ticket_details/'.$insert_id);
-            $return_email = $this->send_email($detail->email_address, 'UNIT TURNOVER SCHEDULE', $message);
-
-            // EMAIL/SMS TO UNIT OWNER
-            $message = "THIS IS A SAMPLE EMAIL NOTIFICATION SUBJECT TO CHANGE";
-            $return_email = $this->send_email($detail->email_address, 'UNIT TURNOVER SCHEDULE', $message);
-            $return_sms = $this->send_sms($detail->mobile_number, $message);
-            $ticket_id_encrypt = $this->dec_enc($customer_number,'encrypt');
-            if($return_email == true) { // && $return_sms == true
-                echo "<script type='text/javascript'>alert('SMS and Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.');</script>";
-                redirect('inbound/schedule/', 'refresh');
-            } else {
-                echo "<script type='text/javascript'>alert('Failure to send the email notification.');</script>";
-                redirect('inbound/schedule/', 'refresh');
+            $description = "Inbound Associate selected a turnover schedule for Unit Owner";
+            $tix = $this->Admin_model->get_ticket_by_customer_number($this->input->post('ticket_id'));
+            //var_dump($this->input->post('ticket_id')); exit;
+              $act_data = array(
+                'ticket_id' => $tix->ticket_id,
+                'description' => $description,
+                'created_by' => user('id'),
+                'status' => 0
+              );
+            $this->Admin_model->add_activity_log($act_data);
+    
+                // create ticket - random assigning to outbound associate
+              $o_associates = array();
+                $outbounds = $this->Admin_model->get_all_outbound_associate();
+                foreach ($outbounds as $outbound) {
+                    $o_associates[] = $outbound->id;
+                }
+    
+                $outbound_rand = array_rand($o_associates);
+                $outbound_assigned = $o_associates[$outbound_rand];
+                
+                //  $insert_ticket = array(
+                //   'ticket_number' => $ticket_number,
+                //   'customer_number' => $customer_number,
+                //   'created_by' => $user_id,
+                //   'category' => 'Turnover',
+                //   'subject' => 'For Schedule Confirmation',
+                //   'assigned_to' => $outbound_assigned,
+                //   'date_assigned' => date("Y/m/d H:i s")
+                // );
+    
+                // $this->Admin_model->add_ticket($insert_ticket); 
+    
+                // add to logs
+                // EMAIL/ SMS TO handover
+                $user = $this->Admin_model->get_user_by_id($outbound_assigned);
+                $message = "THE TICKET NUMBER " .$ticket_number. " HAS BEEN ASSIGNED TO YOU. CLICK HERE FOR MORE INFO" .base_url('/outbound/ticket_details/'.$insert_id);
+                $return_email = $this->send_email($user->email_address, 'UNIT/PARKING TURNOVER', $message);
+    
+                // EMAIL/SMS TO UNIT OWNER
+                $message = "TURNOVER SCHEDULE HAS BEEN BOOKED";
+                $return_email = $this->send_email($detail->email_address, 'UNIT TURNOVER SCHEDULE', $message);
+                $return_sms = $this->send_sms($detail->mobile_number, $message);
+    
+                $ticket_id_encrypt = $this->dec_enc($customer_number,'encrypt');
+                if($return_email == true) { // && $return_sms == true
+                    echo "<script type='text/javascript'>alert('SMS and Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.');</script>";
+                    redirect('inbound/schedule/', 'refresh');
+                } else {
+                    echo "<script type='text/javascript'>alert('Failure to send the email notification.');</script>";
+                    redirect('inbound/schedule/', 'refresh');
+                }
             }
-        }
-
-
     }
 
-    public function schedule_datetime()
+    public function get_schedule_inbound()
     {
         if($this->input->is_ajax_request()) {
-            $events = $this->Admin_model->get_schedule_by_project_code($this->input->get('project'));
+            $events = $this->Admin_model->get_turnover_schedule_by_project_id_by_position_and_project_code($this->input->get('project') , '7');
+
             $data_events = array();
             $time = array(); 
             foreach($events as $event) {
@@ -692,13 +810,21 @@ class Inbound extends CI_Controller {
 
              // exit();
         } else {
-            redirect('admin/my_dashboard/', 'refresh');
+            //redirect('admin/my_dashboard/', 'refresh');
         }
     }
+
+    //Emil 
+      public function schedule_datetime() {
+
+        if($this->input->is_ajax_request()) {
+            echo $this->input->get("dt");
+        } else {
+            redirect('admin/my_dashboard/', 'refresh');
+        }
+       
+
+    }
 }
-
-
-
-
 
 
