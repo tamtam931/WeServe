@@ -74,7 +74,16 @@ $route['admin/dashboard/Companies/:any/Towers/:any/Units/:any']['GET'] = 'Admin/
 
 //end
 
+/*
+	Turnover Schedule updates
+	Added: Ben Zarmaynine E. Obra
+	Date: 01-06-20
 
+*/
+
+$route['TurnoverSchedule']['GET'] = 'TurnoverScheduleController/index';
+
+//end
 
 /*
 	SAP API Routes
