@@ -13,6 +13,7 @@ class weserve_sap extends CI_Model {
 		$this->sub_resource = false;
 		$this->attributes = '';
 		$this->load->model('weserve_sap_config');
+		$this->load->model('weserve_status');
 
 	}
 
@@ -56,7 +57,10 @@ class weserve_sap extends CI_Model {
 			$weserve_sap = $this->weserveSAPinit([
 
 				'cookies' => $config['auth_cookie'],
-				'resource' => $main_resource
+				'resource' => $main_resource,
+				'scheme' => $config['sap_scheme'],
+				'domain' => $config['sap_domain'],
+				'base_uri' => $config['sap_base']
 
 			]);
 
@@ -98,32 +102,32 @@ class weserve_sap extends CI_Model {
 			$status = (array) $unit_obj->STATUS;
 			$turnover = (array) $unit_obj->TURNOVER_DATE;
 
-			if(($status['TEXT'] == 'OPEN' || $status['TEXT'] == 'SOLD') && ($turnover['QCD_TO_CEG'] != '00000000' && $turnover['OCC_PER_DATE'] != '00000000')) {
+			if (($status['TEXT'] == 'OPEN' || $status['TEXT'] == 'SOLD') && $turnover['QCD_TO_CEG'] == '00000000') {
+				
+				$this->attributes = $this->weserve_status->where('color','#FFBF04')->get();
 
-				$this->attributes = '';
+			} else if(($status['TEXT'] == 'OPEN' || $status['TEXT'] == 'SOLD') && $turnover['QCD_TO_CEG'] != '00000000' && ( $turnover['TURN_OVER_DATE'] != '00000000' || $turnover['OCC_PER_DATE'] != '00000000')) {
 
-			} else if(($status['TEXT'] == 'OPEN' || $status['TEXT'] == 'SOLD') && ($turnover['QCD_TO_CEG'] != '00000000' && $turnover['TURN_OVER_DATE'] != '00000000')){
+				$this->attributes = $this->weserve_status->where('color','#FE65E1')->get();
 
-				$this->attributes = '';
+			} else if(($status['TEXT'] == 'OPEN' || $status['TEXT'] == 'SOLD') && $turnover['OOMCACCEPT_DATE'] != '00000000' && ( $turnover['TURN_OVER_DATE'] != '00000000' || $turnover['OCC_PER_DATE'] != '00000000')){ 
+
+				$this->attributes = $this->weserve_status->where('color','#EEFDA2')->get();
 
 			} else if (($status['TEXT'] == 'OPEN' || $status['TEXT'] == 'SOLD') && $turnover['OCC_PER_DATE'] != '00000000') {
 				
-				$this->attributes = '';
+				$this->attributes = $this->weserve_status->where('color','#D2B0CC')->get();
 
 			} else if(($status['TEXT'] == 'OPEN' || $status['TEXT'] == 'SOLD') && $turnover['TURN_OVER_DATE'] != '00000000'){
 
-				$this->attributes = '';
+				$this->attributes = $this->weserve_status->where('color','#F6CF8C')->get();
 
-			} else if (($status['TEXT'] == 'OPEN' || $status['TEXT'] == 'SOLD') && $turnover['QCD_TO_CEG'] != '00000000') {
-				
-
-				$this->attributes = '';
-			}
+			} 
 
 
 		}
 
-		return $turnover;
+		return $this->attributes;
 
 	}
 

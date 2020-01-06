@@ -64,7 +64,7 @@ class sapCustomerController extends CI_Controller
 				$params = $this->input->post('sap_resource');
 				unset($_POST['sap_resource']);
 
-				$ctr = 767;
+				$ctr = 1;
 
 				set_time_limit(0);
 				while(true){

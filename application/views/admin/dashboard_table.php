@@ -36,18 +36,9 @@
 						  					 } 
 						  					
 						  					?>
-						  						<td>
-						  							<a href="#!" class="get_quotation" style="background-color: ">
+						  						<td style="background-color: <?= (isset($attributes['color']) ? $attributes['color'] : '') ?>">
+						  							<a href="#!" class="get_quotation" data-status="<?= (isset($attributes['status_description']) ? $attributes['status_description'] : 'N\A') ?>">
 						  								<?= $floor_units[$x]->REFNO ?>
-						  								<ul style="font-size: 12px;">
-						  									<li>Date Occupancy <strong><?= $attributes['OCC_PER_DATE'] ?></strong></li>
-						  									<li>Move In: <strong><?= $attributes['MOVE_IN_DATE'] ?></strong></li>
-						  									<li>Turnover Date: <strong><?= $attributes['TURN_OVER_DATE'] ?></strong></li>
-						  									<li>QCD Endoresment: <strong><?= $attributes['QCD_TO_CEG'] ?></strong></li>
-						  									<li>OOMC accept: <strong><?= $attributes['OOMCACCEPT_DATE'] ?></strong></li>
-						  									<li>Project TO date: <strong><?= $attributes['PROJTOVER_DATE'] ?></strong></li>
-						  									<li>Project TO time: <strong><?= $attributes['PROJTOVER_TIME'] ?></strong></li>
-						  								</ul>
 						  							</a>
 						  						</td>
 						  					<?php
