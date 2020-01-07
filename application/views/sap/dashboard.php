@@ -31,7 +31,7 @@
 		<div class="col-12 col-sm-6 col-md-4 col-lg-4 p-1">
 			<div class="card">
 				<div class="card-header">
-					<h3 class="mb-0">SAP - Projects</h3>
+					<h3 class="mb-0">SAP - Unit Inventory</h3>
 				</div>				
 				<div class="card-body dash_content">
 					<p class="mb-1 font-weight-bold">Interface Data Configurations</p>
@@ -44,6 +44,7 @@
 						</ul>
 						<li>Units</li>
 						<ul>
+							<li>Unit Inventory</li>
 							<li>Unit Types</li>
 							<li>Floors</li>
 						</ul>

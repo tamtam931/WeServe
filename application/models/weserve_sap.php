@@ -54,15 +54,7 @@ class weserve_sap extends CI_Model {
 			$raw = $this->weserve_sap_config->findOrfail($this->where_activated);
 			$config = $raw[0];
 
-			$weserve_sap = $this->weserveSAPinit([
-
-				'cookies' => $config['auth_cookie'],
-				'resource' => $main_resource,
-				'scheme' => $config['sap_scheme'],
-				'domain' => $config['sap_domain'],
-				'base_uri' => $config['sap_base']
-
-			]);
+			$weserve_sap = $this->weserveSAPinit($raw[0],$main_resource);
 
 		}
 
@@ -137,14 +129,11 @@ class weserve_sap extends CI_Model {
 		Private function for Guzzle HTTP initialization
 	*/
 
-	private function weserveSAPinit($params){
+	private function weserveSAPinit($params,$resource){
 
-		if ($params) {
+		if ($params && $resource) {
 
-			$config_cookie = unserialize($params['cookies']);
-			$resource = $params['resource'];
-
-			$this->load->library('weserve_guzzle',['cookie' => $config_cookie]);
+			$this->load->library('weserve_guzzle',['authentication' => $params]);
 
 			$data = $this->weserve_guzzle->weserve_sap_get($resource);
 

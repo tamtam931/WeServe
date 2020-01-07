@@ -31,7 +31,7 @@ class weserve_sap_config extends CI_Model {
 	}
 
 	public function save(array $formData){
-
+		
 		if ($formData) {
 			
             $this->db->insert($this->table,$formData);

@@ -16,7 +16,7 @@ $(document).ready(function(){
 	/*
 		Modal - CRUD functions
 	*/
-	$('body').on('click','.add_auth,.edit_auth,.check_auth,.del_auth,.add_company,.add_project,.add_unitType,.edit_company,.edit_project,.edit_unitType,.add_customer,.add_floor,.edit_floor',function(e){
+	$('body').on('click','.add_auth,.edit_auth,.check_auth,.del_auth,.add_company,.add_project,.add_unitType,.edit_company,.edit_project,.edit_unitType,.add_customer,.add_floor,.edit_floor,.add_unit,.edit_unit',function(e){
 		e.preventDefault();
 
 		var data;
@@ -70,8 +70,10 @@ $(document).ready(function(){
 							case 'addSapProject':
 							case 'editSapProject':
 							case 'addCustomer':
+							case 'addUnit':
+							case 'editUnit':
 								$('#main_modal').modal('toggle');
-								$('.refresh_companies,.refresh_projects,.refresh_unitTypes,.load_auth,.refresh_customers').trigger('click');
+								$('.refresh_companies,.refresh_projects,.refresh_unitTypes,.load_auth,.refresh_customers,.refresh_units').trigger('click');
 								messageBox(data.success,'.messagebox', data.messages.messagebox);
 							break;
 
@@ -244,6 +246,24 @@ $(document).ready(function(){
    		}
 
    });
+
+	//end
+
+	/*
+		ajax change event
+	*/
+
+	$('body').on('change','.project_tower_id',function(){
+
+		const uri = ($(this).attr('data-uri') ? $(this).attr('data-uri') : $(this).attr('href'));
+
+		const classTitle = $(this).attr('class').split(" ");
+		const btnClass = '.'+classTitle[0];
+		//show_calendar($(this).val())
+
+		console.log(btnClass);
+
+	});
 
 	//end
 

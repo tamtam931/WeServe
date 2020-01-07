@@ -26,31 +26,33 @@ class weserve_guzzle {
 
 	function __construct($credentials){
 
-		/*$this->auth_username = $credentials['username'];
-		$this->auth_password = $credentials['password'];*/
 
-		$this->auth_session_cookie = $credentials;
+		$this->auth_session_cookie = $credentials['authentication'];
 
 		$this->client = new Client();
 		$this->jar = new CookieJar();
+		
+		$this->CI =& get_instance();
+
 
 	}
 
 	public function weserve_sap_get($resource){
 
 		//$sap_auth = $this->weserve_sap_auth($resource);
-		$session_cookie = $this->auth_session_cookie;
+
+		$session_cookie = unserialize($this->auth_session_cookie['auth_cookie']);
 
 		if ($session_cookie) {
 
 			$test_array = [
-				$session_cookie['cookie'][0]['Name'] => $session_cookie['cookie'][0]['Value'],
-				$session_cookie['cookie'][1]['Name'] => $session_cookie['cookie'][1]['Value']
+				$session_cookie[0]['Name'] => $session_cookie[0]['Value'],
+				$session_cookie[1]['Name'] => $session_cookie[1]['Value']
 			];
 
-			$user_cookie = $this->jar->fromArray($test_array,$session_cookie['cookie'][0]['Domain']);
+			$user_cookie = $this->jar->fromArray($test_array,$session_cookie[0]['Domain']);
 			$url = $this->base_uri.$resource;
-			
+
 			try {
 				
 				$response = $this->client->get($url, ['headers' => ['Accept' => 'application/json'],'cookies' => $user_cookie]);
@@ -73,16 +75,50 @@ class weserve_guzzle {
 
 			} catch (ClientException $e) {
 
-				$response = $e->getResponse();
+		    	/*
+					Update session cookie on DB if current data is expired
+					Author: Ben Zarmaynine E. Obra
+					Date: 01-07-20
+		    	*/
 
-				$statusCode = $response->getStatusCode();
+				$url = $this->base_uri.$resource;
 
-				$returnStatus = $this->statusCode($statusCode);
+		    	$credentials = [
+		    		$this->auth_session_cookie['auth_username'],
+		    		$this->auth_session_cookie['auth_password']
+		    	];
 
-				$validation['status'] = $statusCode;
-				$validation['phrase'] = $response->getReasonPhrase();				
+		    	set_time_limit(0);
 
-				return $validation;
+		    	$response = $this->client->get($url, ['auth' => $credentials,'headers' => ['Accept' => 'application/json'],'cookies' => $this->jar]);		    	
+
+
+				$update_cookie = $this->CI->weserve_sap_config->update(['id' => $this->auth_session_cookie['id']],['auth_cookie' => serialize($this->jar->toArray())]);
+
+
+				if ($update_cookie) {
+					
+					set_time_limit(30);
+
+					$statusCode = $response->getStatusCode();
+
+					$returnStatus = $this->statusCode($statusCode);
+
+					if ($returnStatus) {
+
+						return $response->getBody()->getContents();
+
+					} else {
+
+						$validation['status'] = $statusCode;
+						$validation['phrase'] = $response->getReasonPhrase();
+
+						return $validation;
+					}
+
+				}
+				//End
+
 			}
 
 
