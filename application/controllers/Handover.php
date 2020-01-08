@@ -1,23 +1,20 @@
 <?php
-/*
-  Updated: from weserve_merge
-  date: 12-27-19
-  Author: Ben Zarmaynine E. Obra
-*/
+
+
 class Handover extends CI_Controller {
     
     public $user_id = '';
     public $role_id = '';
 
-  public function __construct() {
+	public function __construct() {
       parent::__construct();
       $this->user_id = user('id');
       $this->role_id = user('role');
       $this->load->library('user_agent');
     }
-  public function index($data = null) {
+	public function index($data = null) {
       
-  }
+	}
 
    public function main() {
       $this->load->view('header');
@@ -53,25 +50,68 @@ class Handover extends CI_Controller {
       $this->load->view('handover_associate/schedule_specific');
    }
 
+   function save_pdf_unit_parking(){
 
-    public function ticket_details() {
-      $ticket = $this->Admin_model->get_ticket_by_id($this->uri->segment(3));
-      $data = array(
-          'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket->ticket_number, $ticket->project_code),
-          'ticket_details' => $this->Admin_model->get_ticket_by_id($this->uri->segment(3))
-      );
-      $this->load->view('header');
-      $this->load->view('handover_associate/ticket_details', $data);
-      $this->load->view('footer');
-   }
+    $this->load->library('pdf');
+    $dompdf = new Dompdf();
+    $ticket_number = $this->uri->segment(3);
+    $ticket_details = $this->Admin_model->get_ticket_by_ticket_number($ticket_number);
+
+    $data = array(
+        'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket_number, $ticket_details->project_code_sap),
+        'ticket_details' => $this->Admin_model->get_ticket_by_id($ticket_details->ticket_id)
+    );
+
+      $msg = $this->load->view('handover_associate/part/certificate_unit_parking',$data, true);
+      
+      $html = mb_convert_encoding($msg, 'HTML-ENTITIES', 'UTF-8');
+      $dompdf->load_html($html);
+
+      $paper_orientation = 'Portrait'; 
+      $dompdf->set_paper($paper_orientation);
+
+      $dompdf->render();
+      //$this->pdf->stream($ticket_number ."-CertificateOrPurchaseAndDeliveryTurnover.pdf");
+      $pdfroot = 'documents/'.$ticket_number ."-CertificateOrPurchaseAndDeliveryTurnover_UnitParking.pdf";
+      $pdf_string =   $dompdf->output();
+      
+      file_put_contents($pdfroot, $pdf_string ); 
+
+      // save filename to tbl_tickets acceptance_document
+      $this->Admin_model->update_acceptance_document($ticket_details->ticket_id, $ticket_number ."-CertificateOrPurchaseAndDeliveryTurnover_UnitParking.pdf");
+
+      // update tbl_units status for turnover dashboard here
+      $this->Admin_model->update_status_unit_overall($ticket_details->project_code_sap, $ticket_details->runitid, 14);
+
+      echo "<script type='text/javascript'>alert('Acceptance of Unit is now completed.');</script>";
+
+      $temp_parking_flag = $this->uri->segment(4);
+      if($temp_parking_flag == 'Y') {
+        redirect('handover/temporary_parking/'.$ticket_details->ticket_id, 'refresh');
+      } else {
+        redirect('handover/turnover_process/'.$ticket_details->ticket_id.'/UP', 'refresh');
+      }
+      
+  }
+
+  public function ticket_details() {
+    $ticket = $this->Admin_model->get_ticket_by_id($this->uri->segment(3));
+    $data = array(
+        'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket->ticket_number, $ticket->project_code_sap),
+        'ticket_details' => $this->Admin_model->get_ticket_by_id($this->uri->segment(3))
+    );
+    $this->load->view('header');
+    $this->load->view('handover_associate/ticket_details', $data);
+    $this->load->view('footer');
+ }
+
 
    public function buyer_details() {
     
       $data = array(
           'customer' => $this->Admin_model->get_customer_transaction_by_customer_number($this->uri->segment(3)),
       );
-      
-
+    
       $this->load->view('header');
       $this->load->view('handover_associate/buyer_info', $data);
       $this->load->view('footer');
@@ -308,7 +348,7 @@ class Handover extends CI_Controller {
       $ticket_details = $this->Admin_model->get_ticket_by_ticket_number($ticket_number);
 
       $data = array(
-          'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket_number, $ticket_details->project_code),
+          'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket_number, $ticket_details->project_code_sap),
           'ticket_details' => $this->Admin_model->get_ticket_by_id($ticket_details->ticket_id)
       );
         
@@ -325,6 +365,13 @@ class Handover extends CI_Controller {
         $pdf_string =   $dompdf->output();
         
         file_put_contents($pdfroot, $pdf_string ); 
+
+        // save filename to tbl_tickets acceptance_document
+        $this->Admin_model->update_acceptance_document($ticket_details->ticket_id, $ticket_number ."-CertificateOrPurchaseAndDeliveryTurnover_UnitOnly.pdf");
+
+        // update tbl_units status for turnover dashboard here
+        $this->Admin_model->update_status_unit_overall($ticket_details->project_code_sap, $ticket_details->runitid, 14);
+
         echo "<script type='text/javascript'>alert('Acceptance of Unit is now completed.');</script>";
         $temp_parking_flag = $this->uri->segment(4);
         if($temp_parking_flag == 'Y') {
@@ -334,6 +381,7 @@ class Handover extends CI_Controller {
         }
     }
 
+
     function save_pdf_parking_only(){
       $this->load->library('pdf');
       $dompdf = new Dompdf();
@@ -341,7 +389,7 @@ class Handover extends CI_Controller {
       $ticket_details = $this->Admin_model->get_ticket_by_ticket_number($ticket_number);
 
        $data = array(
-          'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket_number, $ticket_details->project_code),
+          'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket_number, $ticket_details->project_code_sap),
           'ticket_details' => $this->Admin_model->get_ticket_by_id($ticket_details->ticket_id)
       );
         
@@ -358,6 +406,13 @@ class Handover extends CI_Controller {
         $pdf_string =   $dompdf->output();
         
         file_put_contents($pdfroot, $pdf_string ); 
+
+        // save filename to tbl_tickets acceptance_document
+        $this->Admin_model->update_acceptance_document($ticket_details->ticket_id, $ticket_number ."-CertificateOrPurchaseAndDeliveryTurnover_ParkingOnly.pdf");
+
+        // update tbl_units status for turnover dashboard here
+        $this->Admin_model->update_status_unit_overall($ticket_details->project_code_sap, $ticket_details->runitid, 14);
+
         echo "<script type='text/javascript'>alert('Acceptance of Unit is now completed.');</script>";
         $temp_parking_flag = $this->uri->segment(4);
         if($temp_parking_flag == 'Y') {
@@ -367,44 +422,11 @@ class Handover extends CI_Controller {
         }
     }
 
-    function save_pdf_unit_parking(){
 
-      $this->load->library('pdf');
-      $dompdf = new Dompdf();
-      $ticket_number = $this->uri->segment(3);
-      $ticket_details = $this->Admin_model->get_ticket_by_ticket_number($ticket_number);
+ 
 
-      $data = array(
-          'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket_number, $ticket_details->project_code),
-          'ticket_details' => $this->Admin_model->get_ticket_by_id($ticket_details->ticket_id)
-      );
 
-        $msg = $this->load->view('handover_associate/part/certificate_unit_parking',$data, true);
-        
-        $html = mb_convert_encoding($msg, 'HTML-ENTITIES', 'UTF-8');
-        $dompdf->load_html($html);
-
-        $paper_orientation = 'Portrait'; 
-        $dompdf->set_paper($paper_orientation);
-
-        $dompdf->render();
-        //$this->pdf->stream($ticket_number ."-CertificateOrPurchaseAndDeliveryTurnover.pdf");
-        $pdfroot = 'documents/'.$ticket_number ."-CertificateOrPurchaseAndDeliveryTurnover_UnitParking.pdf";
-        $pdf_string =   $dompdf->output();
-        
-        file_put_contents($pdfroot, $pdf_string ); 
-        echo "<script type='text/javascript'>alert('Acceptance of Unit is now completed.');</script>";
-
-        $temp_parking_flag = $this->uri->segment(4);
-        if($temp_parking_flag == 'Y') {
-          redirect('handover/temporary_parking/'.$ticket_details->ticket_id, 'refresh');
-        } else {
-          redirect('handover/turnover_process/'.$ticket_details->ticket_id.'/UP', 'refresh');
-        }
-        
-    }
-
-     function save_pdf_temporary_parking(){
+    function save_pdf_temporary_parking(){
 
       $this->load->library('pdf');
       $dompdf = new Dompdf();
@@ -428,74 +450,83 @@ class Handover extends CI_Controller {
         $pdf_string =   $dompdf->output();
         
         file_put_contents($pdfroot, $pdf_string ); 
+
+        // save filename to tbl_tickets temporary_parking_document
+        $this->Admin_model->update_temp_parking_document($ticket->ticket_id, $ticket->ticket_number ."-TemporaryParkingSlotAllocation.pdf");
+
         echo "<script type='text/javascript'>alert('Temporary parking is successfully assigned to Unit.');</script>";
         redirect('handover/turnover_process/'.$this->uri->segment(3).'/UP', 'refresh');
 
         
     }
 
-     public function add_turnover_process() {
 
-       //var_dump(htmlspecialchars($this->input->post('signature_output'))); exit;
-        $count = $this->input->post('count_inputs');
-        $ticket_number = $this->input->post('ticket');
-        $unit_type = $this->input->post('unit_type_id');
-        $ticket_type = $this->input->post('ticket_type');
-        $ticket_id = $this->input->post('ticket_id');
-        $checklist_checker = $this->Admin_model->get_ticket_checklist_by_ticketid($ticket_number);
+    public function add_turnover_process() {
 
-        if($checklist_checker) {
-            // delete if existing checklist record
-            $this->Admin_model->delete_ticket_checklist($ticket_number);
-        }
-        $insert_id = 0;
-        for ($i = 0; $i < $count; $i++) {
-            $strarea = 'area'. $i;
-            $strobservation = 'observation'. $i;
+      //var_dump(htmlspecialchars($this->input->post('signature_output'))); exit;
+      $count = $this->input->post('count_inputs');
+      $ticket_number = $this->input->post('ticket');
+      $unit_type = $this->input->post('unit_type_id');
+      $ticket_type = $this->input->post('ticket_type');
+      $ticket_id = $this->input->post('ticket_id');
+      $checklist_checker = $this->Admin_model->get_ticket_checklist_by_ticketid($ticket_number);
 
-            $area = $this->input->post($strarea);
-            $observation = $this->input->post($strobservation);
+      if($checklist_checker) {
+          // delete if existing checklist record
+          $this->Admin_model->delete_ticket_checklist($ticket_number);
+      }
+      $insert_id = 0;
+      for ($i = 0; $i < $count; $i++) {
+          $strarea = 'area'. $i;
+          $strobservation = 'observation'. $i;
 
-           if($area != NULL) {
-                $insert_data = array(
-                'ticket_number' => $ticket_number,
-                'area_for_checking' => $area,
-                'observation' => $observation
-               );
-               $insert_id = $this->Admin_model->add_ticket_checklist($insert_data);
+          $area = $this->input->post($strarea);
+          $observation = $this->input->post($strobservation);
 
-           }
-           
-        }
+          if($area != NULL) {
+              $insert_data = array(
+              'ticket_number' => $ticket_number,
+              'area_for_checking' => $area,
+              'observation' => $observation
+              );
+              $insert_id = $this->Admin_model->add_ticket_checklist($insert_data);
 
-        if($insert_id > 0) {
-          // ADD ACTIVITY
-          $description = "Unit/Parking has been accepted by Unit Owner.";
-          $act_data = array(
-            'ticket_id' => $ticket_id,
-            'description' => $description,
-            'created_by' => user('id'),
-            'status' => 0
+          }
+          
+      }
+
+      if($insert_id > 0) {
+        // ADD ACTIVITY
+        $description = "Unit/Parking has been accepted by Unit Owner.";
+        $act_data = array(
+          'ticket_id' => $ticket_id,
+          'description' => $description,
+          'created_by' => user('id'),
+          'status' => 0
+        );
+        $this->Admin_model->add_activity_log($act_data);
+
+        // update tbl_units status for turnover dashboard here
+        $ticket_data = $this->Admin_model->get_ticket_by_id($ticket_id);
+        $this->Admin_model->update_status_unit_overall($ticket_data->project_code_sap, $ticket_data->runitid, 11);
+
+          echo "<script type='text/javascript'>alert('Turnover Checklist has been successfully saved.');</script>";
+          //redirect('admin/turnover_process/'.$unit_type, 'refresh');
+          $ticket = $this->Admin_model->get_ticket_by_id($ticket_id);
+
+          $data = array(
+              'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket->ticket_number, $ticket->project_code_sap),
+              'ticket_details' => $this->Admin_model->get_ticket_by_id($ticket_id),
+              'ticket_type' => $ticket_type,
+              'ticket_id' => $ticket_number
           );
-          $this->Admin_model->add_activity_log($act_data);
-
-            echo "<script type='text/javascript'>alert('Turnover Checklist has been successfully saved.');</script>";
-            //redirect('admin/turnover_process/'.$unit_type, 'refresh');
-            $ticket = $this->Admin_model->get_ticket_by_id($ticket_id);
-
-            $data = array(
-                'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket->ticket_number, $ticket->project_code),
-                'ticket_details' => $this->Admin_model->get_ticket_by_id($ticket_id),
-                'ticket_type' => $ticket_type,
-                'ticket_id' => $ticket_number
-            );
-            $this->load->view('header');
-            $this->load->view('handover_associate/acceptance_page', $data);
-            $this->load->view('footer');
-        } 
+          $this->load->view('header');
+          $this->load->view('handover_associate/acceptance_page', $data);
+          $this->load->view('footer');
+      } 
 
 
-    }
+  }
 
     public function save_signature_ajax(){
       if($this->input->is_ajax_request()) {
@@ -551,8 +582,23 @@ class Handover extends CI_Controller {
      
         return $output;
     }
-  
+    
+    
+    //From Viel 08 , 2019
+    public function update_unit_status(){
+      if($this->input->is_ajax_request()) {
+        $project = $this->input->post('project');
+        $runitid = $this->input->post('runitid');
+        $status = $this->input->post('status');
 
+        $update_id = $this->Admin_model->update_status_unit_overall($project, $runitid, $status);
+        
+      } else {
+          redirect('admin/my_dashboard/', 'refresh');
+      }
+    }
+
+    
 }
 
 

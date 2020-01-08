@@ -136,7 +136,7 @@ $(document).ready(function(){
 	/*
 		Loading/refresh pages
 	*/
-	$('body').on('click','.load_auth,.load_projects,.load_user,.load_companies,.back_dashlist,.refresh_companies,.load_projects,.refresh_projects,.load_unitTypes,.refresh_unitTypes,.load_customers,.refresh_customers,.load_floors,.refresh_floors',function(e){
+	$('body').on('click','.load_auth,.load_projects,.load_user,.load_companies,.back_dashlist,.refresh_companies,.load_projects,.refresh_projects,.load_unitTypes,.refresh_unitTypes,.load_customers,.refresh_customers,.load_floors,.refresh_floors,.load_units,.refresh_units',function(e){
 		e.preventDefault();
 
 		const user_parent = $(this).parent("a");
@@ -174,7 +174,7 @@ $(document).ready(function(){
 		loadAjax.done(function(data){
 
 			$('#app').html(data);
-			init_table('.auth_table,.company_table,.project_table,.unitType_table,.customer_table');
+			init_table('.auth_table,.company_table,.project_table,.unitType_table,.customer_table,.unit_table');
 
 		});
 

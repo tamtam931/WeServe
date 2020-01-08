@@ -118,11 +118,16 @@ $route['sap/customer/:any/edit']['POST'] = 'sapCustomerController/update';
 $route['sap/customer/:any']['POST'] = 'sapCustomerController/destroy';
 $route['sap/customer/test/call']['GET'] = 'sapCustomerController/call';
 
+$route['sap/unit']['GET'] = 'sapUnitController/index';
+$route['sap/unit/create']['GET'] = 'sapUnitController/create';
+$route['sap/unit']['POST'] = 'sapUnitController/store';
+/*$route['sap/unit/company/:any']['GET'] = 'sapUnitController/indexCompany';
+$route['sap/unit/company/:any/project/:any']['GET'] = 'sapUnitController/indexCompanyProject';*/ 
+
 $route['sap'] = 'sapWeserveController/index';
 $route['sap/:any'] = 'sapWeserveController/show';
 
-$route['sap/unit/company/:any']['GET'] = 'sapUnitController/indexCompany';
-$route['sap/unit/company/:any/project/:any']['GET'] = 'sapUnitController/indexCompanyProject'; 
+
 
 //end
 $route['404_override'] = '';

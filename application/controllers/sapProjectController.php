@@ -21,6 +21,7 @@ class sapProjectController extends CI_Controller
         $this->load->model('weserve_sap_project');
         $this->load->model('weserve_sap_unit_type');
         $this->load->model('weserve_sap_floor');
+        $this->load->model('weserve_sap_units');
 
 	}
 
@@ -125,9 +126,10 @@ class sapProjectController extends CI_Controller
 				$resource = $this->weserve_sap->all($this->input->post('sap_resource'));
 				
 				if ($resource) {
-
+				
 					$assoc_resource = json_decode($resource,true);
-					$resource_length = count($assoc_resource);
+
+					$resource_length = 1;
 					$ctr = 0;
 
 					for ($i=0; $i < $resource_length ; $i++) { 
@@ -372,7 +374,8 @@ class sapProjectController extends CI_Controller
 
 						$return_array['page'] = 'add';
 
-						break;												
+						break;
+																		
 					default:
 						return false;
 						break;
@@ -455,6 +458,7 @@ class sapProjectController extends CI_Controller
 					$this->add = $this->weserve_sap_unit_type->update($this->input->post(),$index);
 
     			}
+
     			set_time_limit(30);
 				$return_array['data'] = $this->add;    			
 
@@ -469,7 +473,23 @@ class sapProjectController extends CI_Controller
 
 	    				$return_array['page'] = 'details';
 	    				$return_array['data'] = $data;
+    				$_POST['company_code'] = $assoc_array['resource'][$index]['BUKRS'];
 
+    				$sap_project_code = $assoc_array['resource'][$index]['SWENR'];
+
+    				if (($pos = strpos($sap_project_code, "-")) !== FALSE) {
+
+    					$tower_no = substr($sap_project_code, $pos+1);
+    					$tower_code = explode('-', $sap_project_code);
+
+    					$_POST['tower'] = trim($tower_no);
+    					$_POST['project'] = trim($tower_code[0]); 
+
+					} else {
+
+						$_POST['tower'] = 'N\A';
+						$_POST['project'] = 'N\A';
+					}
     					break;
     				case 'show_unitType':
 	    				$data = $this->weserve_sap_unit_type->get($id);

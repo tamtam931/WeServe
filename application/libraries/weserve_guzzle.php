@@ -37,7 +37,7 @@ class weserve_guzzle {
 
 	}
 
-	public function weserve_sap_get($resource){
+	public function weserve_sap_get($resource,$token=false){
 
 		//$sap_auth = $this->weserve_sap_auth($resource);
 
@@ -55,7 +55,14 @@ class weserve_guzzle {
 
 			try {
 				
-				$response = $this->client->get($url, ['headers' => ['Accept' => 'application/json'],'cookies' => $user_cookie]);
+				if ($token) {
+					
+					$response = $this->client->get($url, ['headers' => ['Accept' => 'application/json','x-csrf-token' => 'fetch'],'cookies' => $user_cookie]);
+
+				} else {
+
+					$response = $this->client->get($url, ['headers' => ['Accept' => 'application/json'],'cookies' => $user_cookie]);
+				}
 
 				$statusCode = $response->getStatusCode();
 
@@ -90,7 +97,14 @@ class weserve_guzzle {
 
 		    	set_time_limit(0);
 
-		    	$response = $this->client->get($url, ['auth' => $credentials,'headers' => ['Accept' => 'application/json'],'cookies' => $this->jar]);		    	
+		    	if ($token) {
+		    		   
+					$response = $this->client->get($url, ['auth' => $credentials,'headers' => ['Accept' => 'application/json','x-csrf-token' => 'fetch'],'cookies' => $this->jar]);
+
+				} else {
+
+					$response = $this->client->get($url, ['auth' => $credentials,'headers' => ['Accept' => 'application/json'],'cookies' => $this->jar]);
+				}	    	
 
 
 				$update_cookie = $this->CI->weserve_sap_config->update(['id' => $this->auth_session_cookie['id']],['auth_cookie' => serialize($this->jar->toArray())]);
@@ -129,6 +143,19 @@ class weserve_guzzle {
 		}
 
 		
+
+	}
+
+	public function weserve_sap_put($resource){
+
+		if ($resource) {
+			
+			$find = $this->weserve_sap_get($resource,true);
+
+		} else {
+
+			return false;
+		}
 
 	}	
 

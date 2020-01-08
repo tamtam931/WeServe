@@ -1,24 +1,20 @@
 <?php
-/*
-  Updated: from weserve_merge
-  date: 12-27-19
-  Author: Ben Zarmaynine E. Obra
-*/
+
 
 class Inbound extends CI_Controller {
     
     public $user_id = '';
     public $role_id = '';
 
-    public function __construct() {
+	public function __construct() {
         parent::__construct();
         $this->user_id = user('id');
         $this->role_id = user('role');
         $this->load->library('user_agent');
     }
-    public function index($data = null) {
+	public function index($data = null) {
       
-    }
+	}
 
    public function main() {
         $this->load->view('header');
@@ -78,15 +74,16 @@ class Inbound extends CI_Controller {
    }
 
    public function ticket_details() {
-      $ticket = $this->Admin_model->get_ticket_by_id($this->uri->segment(3));
-      $data = array(
-          'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket->ticket_number, $ticket->project_code),
-          'ticket_details' => $this->Admin_model->get_ticket_by_id($this->uri->segment(3))
-      );
-      $this->load->view('header');
-      $this->load->view('inbound_associate/ticket_details', $data);
-      $this->load->view('footer');
-   }
+    $ticket = $this->Admin_model->get_ticket_by_id($this->uri->segment(3));
+     $data = array(
+       'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket->ticket_number, $ticket->project_code_sap),
+       'ticket_details' => $this->Admin_model->get_ticket_by_id($this->uri->segment(3))
+    );
+    $this->load->view('header');
+    $this->load->view('inbound_associate/ticket_details', $data);
+    $this->load->view('footer');
+    }
+
 
      public function add_schedule() {
 
@@ -196,15 +193,16 @@ class Inbound extends CI_Controller {
               // add to logs
             $description = "Inbound Associate selected a turnover schedule for Unit Owner";
             $tix = $this->Admin_model->get_ticket_by_id($ticket_num);
-
-            $act_data = array(
-              'ticket_id' => $tix->ticket_id,
-              'description' => $description,
-              'created_by' => user('id'),
-              'status' => 0
-            );
-            $this->Admin_model->add_activity_log($act_data);
-
+            foreach($tix as $t){
+                $act_data = array(
+                    'ticket_id' => $t->ticket_id,
+                    'description' => $description,
+                    'created_by' => user('id'),
+                    'status' => 0
+                  );
+                  $this->Admin_model->add_activity_log($act_data);      
+            }
+            
             // EMAIL/ SMS TO HANDOVER
              $user = $this->Admin_model->get_user_by_id($outbound_assigned);
             $message = "THE TICKET NUMBER " .$ticket_number. " HAS BEEN ASSIGNED TO YOU. CLICK HERE FOR MORE INFO" .base_url('/outbound/ticket_details/'.$insert_id);
@@ -584,23 +582,29 @@ class Inbound extends CI_Controller {
 
     public function get_user_preference($ched , $assigned_to , $project_distination){
         $distance = '0';
-        $schedule = $this->Admin_model->get_sched_of_outbond_assoc($ched , $assigned_to);
+        $schedule = $this->Admin_model->get_sched_of_hand_over($ched , $assigned_to);
         if ($schedule !== '0'){
             foreach($schedule as $data){
                 $ticket_number = $data->ticket_number;
-                $project_code = strtok($ticket_number, '-');
+                $project_code = strtok($ticket_number, '-') . '-' . strtok('-');
                 //Get the Project id of the hand over assoc sched on the user selected date.
                 $project_id_of_assoc_sched_assign = $this->Admin_model->get_project_id_assoc($project_code);
                 $assoc_distination = $this->Admin_model->get_project_id_assoc($project_distination);
                 foreach($project_id_of_assoc_sched_assign as $data1){
-                    $id = $data1->id;
+                  //var_dump($project_id_of_assoc_sched_assign);exit();
+                  $id = $data1->id;
                     foreach($assoc_distination as $data2){
-                        $id2 = $data2->id;
-                        $distance_project = $this->Admin_model->get_distance_project($id , $id2);   
-                        foreach($distance_project as $data_dis){
-                            $distance = $data_dis->distance;
-                            return $distance;
+                        if (!empty($data2->id)){
+                          $id2 = $data2->id;
+                          $distance_project = $this->Admin_model->get_distance_project($id , $id2);   
+                          foreach($distance_project as $data_dis){
+                              $distance = $data_dis->distance;
+                              return $distance;
+                          }
+                        }else{
+                          //Do nothing
                         }
+                       
                     }
                 }
             }
@@ -608,7 +612,7 @@ class Inbound extends CI_Controller {
             return $distance;
         }
         
-    }   
+    }    
 
     public function add_schedule_available(){
         $user_id = $this->input->post('logged_user');
@@ -634,7 +638,7 @@ class Inbound extends CI_Controller {
         $chck_ticket = $this->Admin_model->check_ticket_number($ticket_number);
 
         //If the ticket has no sched
-        if(count($chck_ticket == 0)){
+        if(count($chck_ticket) == 0){
             $insert_datas = array(
                 'customer_number' => $customer_number,
                 'ticket_number' => $ticket_number,
@@ -644,6 +648,33 @@ class Inbound extends CI_Controller {
                 'status' => 0);
 
             $this->Admin_model->add_turnover_schedule($insert_datas);
+
+             //Insert ticket status in db after assigning the tickets
+             $ticket_status_data_insertion = array(
+                array(
+                        'ticket_number' => $ticket_number,
+                        'status' => 0,
+                        'assign_to' => $assign_to,
+                        'user_section' => 'INBOUND_ASSOC',
+                        'activity_status' => 0
+                    ),
+                    array(
+                        'ticket_number' => $ticket_number,
+                        'status' => 0,
+                        'assign_to' => '',
+                        'user_section' => 'OUTBOUND_ASSOC',
+                        'activity_status' => 0
+                    ),
+                    array(
+                        'ticket_number' => $ticket_number,
+                        'status' => 0,
+                        'assign_to' => '',
+                        'user_section' => 'HANDOVER_ASSOC',
+                        'activity_status' => 0
+                    )
+                );
+                $this->db->insert_batch('tbl_ticket_status', $ticket_status_data_insertion);
+
         }else{
             //If the ticket has sched update tikcet old ticket and insert the new one 
             foreach($chck_ticket as $ticket_data){
@@ -681,6 +712,35 @@ class Inbound extends CI_Controller {
             );
             $insert_id = $this->Admin_model->add_turnover_schedule($insert_data);
 
+             //Insert ticket status in db after assigning the tickets
+             $ticket_status_data_insertion = array(
+                array(
+                        'ticket_number' => $ticket_number,
+                        'status' => 0,
+                        'assign_to' => $assign_to,
+                        'user_section' => 'INBOUND_ASSOC',
+                        'activity_status' => 0
+                    ),
+                    array(
+                        'ticket_number' => $ticket_number,
+                        'status' => 0,
+                        'assign_to' => '',
+                        'user_section' => 'OUTBOUND_ASSOC',
+                        'activity_status' => 0
+                    ),
+                    array(
+                        'ticket_number' => $ticket_number,
+                        'status' => 0,
+                        'assign_to' => '',
+                        'user_section' => 'HANDOVER_ASSOC',
+                        'activity_status' => 0
+                    )
+                );
+                $this->db->insert_batch('tbl_ticket_status', $ticket_status_data_insertion);
+
+
+            //Send Email for Confirmation
+            $this->send_email_for_confirmation();
               // ADD ACTIVITY
             $description = "The schedule has been re-scheduled to " . $new_dt->format('Y-m-d H:i:s') ;
             $act_data = array(
@@ -716,24 +776,50 @@ class Inbound extends CI_Controller {
                     'status' => 0
                 );
                 $insert_id = $this->Admin_model->add_turnover_schedule($insert_data);
-            }
+
+                 //Insert ticket status in db after assigning the tickets
+                $ticket_status_data_insertion = array(
+                    array(
+                            'ticket_number' => $ticket_number,
+                            'status' => 0,
+                            'assign_to' => $assign_to,
+                            'user_section' => 'INBOUND_ASSOC',
+                            'activity_status' => 0
+                        ),
+                        array(
+                            'ticket_number' => $ticket_number,
+                            'status' => 0,
+                            'assign_to' => '',
+                            'user_section' => 'OUTBOUND_ASSOC',
+                            'activity_status' => 0
+                        ),
+                        array(
+                            'ticket_number' => $ticket_number,
+                            'status' => 0,
+                            'assign_to' => '',
+                            'user_section' => 'HANDOVER_ASSOC',
+                            'activity_status' => 0
+                        )
+                    );
+                    $this->db->insert_batch('tbl_ticket_status', $ticket_status_data_insertion);
+                }
         }
 
-        if($insert_id > 0) {
+       // if($insert_id > 0) {
             //update ticket subject
             $this->Admin_model->update_ticket_subject_only($ticket_number,"TURNOVER", "FOR TURNOVER");
             // add to logs
             $description = "Inbound Associate selected a turnover schedule for Unit Owner";
             $tix = $this->Admin_model->get_ticket_by_customer_number($this->input->post('ticket_id'));
-            //var_dump($this->input->post('ticket_id')); exit;
-              $act_data = array(
-                'ticket_id' => $tix->ticket_id,
-                'description' => $description,
-                'created_by' => user('id'),
-                'status' => 0
-              );
-            $this->Admin_model->add_activity_log($act_data);
-    
+            foreach($tix as $t){
+                $act_data = array(
+                    'ticket_id' => $t->ticket_id,
+                    'description' => $description,
+                    'created_by' => user('id'),
+                    'status' => 0
+                  );
+                $this->Admin_model->add_activity_log($act_data);    
+            }
                 // create ticket - random assigning to outbound associate
               $o_associates = array();
                 $outbounds = $this->Admin_model->get_all_outbound_associate();
@@ -775,7 +861,7 @@ class Inbound extends CI_Controller {
                     echo "<script type='text/javascript'>alert('Failure to send the email notification.');</script>";
                     redirect('inbound/schedule/', 'refresh');
                 }
-            }
+            //}
     }
 
     public function get_schedule_inbound()
@@ -822,8 +908,25 @@ class Inbound extends CI_Controller {
         } else {
             redirect('admin/my_dashboard/', 'refresh');
         }
-       
+    }
 
+    //For Sending of Email for unit owner for schedule confirmation (After scheduling)
+    public function send_email_for_confirmation(){
+        $customer_number = $this->input->post('customer_number');
+        $encrypt_customer_number = $this->dec_enc($customer_number,'encrypt');
+        $get_customers = $this->Admin_model->get_customer_by_custnum($customer_number);
+
+        foreach($get_customers as $get_customer){
+            $get_customer_email = $get_customer->email_address;
+            $message = "Here's the link to confirm you schedule...";
+            $link = base_url()."default_user/schedule_confirmation/". $encrypt_customer_number;
+            $send_email = $this->send_email($get_customer_email, 'Link for schedule confirmation', $message . ' ' . $link );
+            if($send_email == true) { // && $return_sms == true
+                echo "<script type='text/javascript'>alert('Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.');</script>";
+            } else {
+                echo "<script type='text/javascript'>alert('Failure to send the email notification.');</script>";
+            }
+        }
     }
 }
 

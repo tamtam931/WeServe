@@ -68,75 +68,73 @@ class Default_user extends CI_Controller {
 
 
         //If has a schedule
-        if (!empty($hand_assoc_sched)){
-            foreach($hand_assoc_sched as $hand_assoc_scheds){
-                $sched = $hand_assoc_scheds->schedule;
-                $sched_chcker[] = $hand_assoc_scheds->schedule;
-                $ticket_number = $hand_assoc_scheds->ticket_number;
-                $availability["assoc_assigned_project"] = strtok($ticket_number, '-');
-                $project_code = strtok($ticket_number, '-');
-                
-                
-                $sched_date_where_clausehed = $new_dt->format('Y-m-d') . ' ' . '09:00:00';
-                
-                if (in_array($new_dt->format('Y-m-d H:i:s') , $sched_chcker)){
-                    $availability['in_array_sched'] = $sched_chcker;
-                    $availability['reserved'] = 'NOT AVAILABLE'; $availability['avail']= 'false';
-                }else{
-                    $sched_date_where_clause_sched_9 = $new_dt->format('Y-m-d') . ' ' . '09:00:00';
-                    $sched_date_where_clause_sched_11 = $new_dt->format('Y-m-d') . ' ' . '11:00:00';
-                    $sched_date_where_clause_sched_14 = $new_dt->format('Y-m-d') . ' ' . '14:00:00';
-                    if ($time == '9' ){
-                        $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
-                        if($distance_calculated > 10){
-                            $availability['avail'] = 'false';
-                            $availability['reserved'] = 'NOT AVAILABLE';
-                            $availability['More than 10KM in selected time is 9AM'] = '';
-                        }else{
-                            $availability['avail']= 'true';
-                            $availability['reserved'] = '';
-                            $availability['Less than 10KM in selected time is 9AM -> time selected is 9'] = '';
-                        }
-                    }else if ($time == '11'){
-                        $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
-                        if($distance_calculated > 10){
-                            $availability['avail'] = 'false';
-                            $availability['reserved'] = 'NOT AVAILABLE';
-                            $availability['More than 10KM in selected time is 11AM'] = '';
-                        }else{
-                            $availability['avail'] = 'true';
-                            $availability['reserved'] = '';
-                            $availability['Less than 10KM in selected time is 11AM'] = '';
-                        }
-                    }else if ($time == '14'){
-                        $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
-                        if($distance_calculated > 10){
-                            $availability['avail'] = 'false';
-                            $availability['More than 10KM(Schedule is 9AM) in selected time is 14AM'] = '';
-                            $distance_calculateds = $this->get_user_preference($sched_date_where_clause_sched_11 , $hand_over_assign , $distination);
-                            if ($distance_calculateds > 10){
-                                $availability['avail'] = 'false';
-                                $availability['reserved'] = 'NOT AVAILABLE';
-                                $availability['More than 10KM(Schedule is 11AM) in selected time is 14AM'] = '';
-                            }else{
-                                $availability['avail'] = 'true';
-                                $availability['reserved'] = '';
-                            }
-                        }else{
-                            $distance_calculated_no_9 = $this->get_user_preference($sched_date_where_clause_sched_11 , $hand_over_assign , $distination);
-                            if ($distance_calculated_no_9 > 10){
-                                $availability['avail'] = 'false';
-                                $availability['reserved'] = 'NOT AVAILABLE';
-                                $availability['More than 10KM(Schedule is 11AM No Sched in 9AM) in selected time is 14AM'] = '';
-                            }else{
-                                $availability['avail'] = 'true';
-                                $availability['reserved'] = '';
-                                $availability['Less than 10KM in selected time is 9AM No Sched in 9AM -> time selected is 14-else'] = $sched_date_where_clause_sched_9 . $hand_over_assign . $distination;
-                            }
-                        }
+       if (!empty($hand_assoc_sched)){
+        foreach($hand_assoc_sched as $hand_assoc_scheds){
+            $sched = $hand_assoc_scheds->schedule;
+            $sched_chcker[] = $hand_assoc_scheds->schedule;
+            $ticket_number = $hand_assoc_scheds->ticket_number;
+            $availability["assoc_assigned_project"] = strtok($ticket_number, '-');
+            $project_code = strtok($ticket_number, '-');
+            
+            
+            $sched_date_where_clausehed = $new_dt->format('Y-m-d') . ' ' . '09:00:00';
+            
+            if (in_array($new_dt->format('Y-m-d H:i:s') , $sched_chcker)){
+                $availability['in_array_sched'] = $sched_chcker;
+                $availability['reserved'] = 'NOT AVAILABLE'; $availability['avail']= 'false';
+            }else{
+                $sched_date_where_clause_sched_9 = $new_dt->format('Y-m-d') . ' ' . '09:00:00';
+                $sched_date_where_clause_sched_11 = $new_dt->format('Y-m-d') . ' ' . '11:00:00';
+                $sched_date_where_clause_sched_14 = $new_dt->format('Y-m-d') . ' ' . '14:00:00';
+                $sched_date_where_clause_sched_16 = $new_dt->format('Y-m-d') . ' ' . '16:00:00';
+                if ($time == '9' ){
+                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
+                    if($distance_calculated > 10){
+                        $availability['avail'] = 'false';
+                        $availability['reserved'] = 'NOT AVAILABLE';
+                        $availability['More than 10KM in selected time is 9AM'] = '';
+                    }else{
+                        $availability['avail']= 'true';
+                        $availability['reserved'] = '';
+                        $availability['Less than 10KM in selected time is 9AM -> time selected is 9'] = '';
+                    }
+                }else if ($time == '11'){
+                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
+                    if($distance_calculated > 10){
+                        $availability['distance'] = $distination;
+                        $availability['avail'] = 'false';
+                        $availability['reserved'] = 'NOT AVAILABLE';
+                        $availability['More than 10KM in selected time is 11AM'] = '';
+                    }else{
+                        $availability['distance'] = $distination;
+                        $availability['avail'] = 'true';
+                        $availability['reserved'] = '';
+                        $availability['Less than 10KM in selected time is 11AM'] = '';
+                    }
+                }else if ($time == '14'){
+                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_11 , $hand_over_assign , $distination);
+                    if($distance_calculated > 10){
+                        $availability['avail'] = 'false';
+                        $availability['More than 10KM(Schedule is 9AM) in selected time is 14AM'] = '';   
+                    }else{
+                        $availability['avail'] = 'true';
+                        $availability['reserved'] = '';
+                    }
+                }else if ($time == '16'){
+                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
+                    $distance_calculated_11 = $this->get_user_preference($sched_date_where_clause_sched_11 , $hand_over_assign , $distination);
+                    $distance_calculated_14 = $this->get_user_preference($sched_date_where_clause_sched_14 , $hand_over_assign , $distination);
+                    
+                    if ($distance_calculated_14 > 10){
+                        $availability['avail'] = 'false';
+                        $availability['More than 10KM(Schedule is 2PM) in selected time is 4PM'] = ''; 
+                    }else{
+                        $availability['avail'] = 'true';
+                        $availability['reserved'] = '';
                     }
                 }
             }
+        }
         }else{
             $availability['reserved'] = ''; $availability['avail']= 'true';
         }
@@ -161,37 +159,144 @@ class Default_user extends CI_Controller {
 
     public function get_user_preference($ched , $assigned_to , $project_distination){
         $distance = '0';
-        $schedule = $this->Admin_model->get_sched_of_hand_overs($ched , $assigned_to);
-        if (!empty($schedule)){
+        $schedule = $this->Admin_model->get_sched_of_hand_over($ched , $assigned_to);
+        if ($schedule !== '0'){
             foreach($schedule as $data){
                 $ticket_number = $data->ticket_number;
                 $project_code = strtok($ticket_number, '-');
                 //Get the Project id of the hand over assoc sched on the user selected date.
                 $project_id_of_assoc_sched_assign = $this->Admin_model->get_project_id_assoc($project_code);
-                //Get the project if of unit owner. 
                 $assoc_distination = $this->Admin_model->get_project_id_assoc($project_distination);
-                //Get the distance base on the project id.
-                $distance_project = $this->Admin_model->get_distance_project($project_id_of_assoc_sched_assign->id , $assoc_distination->id);   
-                $distance = $distance_project->distance;
-                return $distance;
+                foreach($project_id_of_assoc_sched_assign as $data1){
+                    $id = $data1->id;
+                    foreach($assoc_distination as $data2){
+                        $id2 = $data2->id;
+                        $distance_project = $this->Admin_model->get_distance_project($id , $id2);   
+                        foreach($distance_project as $data_dis){
+                            $distance = $data_dis->distance;
+                            return $distance;
+                        }
+                    }
+                }
             }
         }else{
             return $distance;
         }
         
-    }
+    } 
 
     public function schedule() {
         $ticket_number_parameter = $this->uri->segment(3);
         $ticket_number = $this->dec_enc($ticket_number_parameter,'decrypt');
+        $link = base_url()."default_user/schedule/". $ticket_number_parameter;
+        $link_status = $this->Admin_model->select_link($link);
         if (!empty($ticket_number)){
-            $data = array(
-                'ticket_number_decrypt'=> $ticket_number
-            );
-            $this->load->view('header');
-            $this->load->view('default_user/schedule' , $data);
+            foreach($link_status as $link){
+                $linkstatus = $link->status;
+                if ($linkstatus == 0){
+                    $data = array(
+                        'ticket_number_decrypt'=> $ticket_number
+                    );
+                    $this->load->view('header');
+                    $this->load->view('default_user/schedule' , $data);
+                }else{
+                    show_404();
+                }
+            }
         }else{
             show_404();
+        }
+    }
+
+    public function schedule_confirmation(){
+        $customer_number = $this->uri->segment(3);
+        $customer_number_decrypt = $this->dec_enc($customer_number,'decrypt');
+        $get_customers = $this->Admin_model->get_customer_by_custnum($customer_number_decrypt);
+        $ticker_num = $this->input->post('ticket_number');
+        
+        if (!empty($customer_number)){
+            foreach($get_customers as $get_customer){
+                if (!empty($get_customer->email_address)){
+                    //Check if the email is used or expired
+                    $chck_link = $this->Admin_model->get_link_stat($customer_number , $ticker_num , 2 , 1);
+                    if(empty($chck_link)){
+                        $this->load->view('header');
+                        $this->load->view('default_user/schedule_confirmation' , $get_customers);
+                        $this->load->view('footer');
+                    }else{
+                        show_404();
+                    }
+                }else{
+                    show_404();
+                }
+            }
+        }else{
+           show_404();
+        }
+    }
+
+    public function confirmed(){
+        $customer_number = $this->uri->segment(3);
+        $customer_number_decrypt = $this->dec_enc($customer_number,'decrypt');
+        $customer_number_input = $this->input->post('customer_number');
+        $ticket_number = $this->input->post('ticket_number');
+       
+        if ($customer_number_input === $customer_number_decrypt){
+            $update_stats = $this->Admin_model->update_schedule($customer_number_decrypt , $ticket_number);
+            //Assigned to hand over round robin;
+            //EMIl 1/6/2020
+            $ticket_number = $data->ticket_number;
+            $customer_number = $data->customer_number;
+            
+            $hand_associates = array();
+            $handovers = $this->Admin_model->get_all_handover_associate();
+            foreach ($handovers as $handover) {
+                $hand_associates[] = $handover->user_id;
+            }
+
+            $hand_rand = array_rand($hand_associates);
+            $hand_assigned = $hand_associates[$hand_rand];
+            
+            $insert_ticket = array(
+            'ticket_number' => $ticket_number,
+            'customer_number' => $customer_number_decrypt,
+            'created_by' => '0',
+            'category' => 'Confirmed Schedule',
+            'subject' => 'Schedule was confirmed',
+            'assigned_to' => $hand_assigned,
+            'date_assigned' => date("Y/m/d H:i s")
+            ); 
+
+            $insert_id = $this->Admin_model->add_ticket($insert_ticket); 
+
+             //Insert ticket status in db after assigning the tickets
+             $ticket_status_data_insertion = array(
+                array(
+                        'ticket_number' => $ticket_number,
+                        'status' => 0,
+                        'assign_to' => '',
+                        'user_section' => 'INBOUND_ASSOC',
+                        'activity_status' => 0
+                    ),
+                    array(
+                        'ticket_number' => $ticket_number,
+                        'status' => 0,
+                        'assign_to' => '',
+                        'user_section' => 'OUTBOUND_ASSOC',
+                        'activity_status' => 0
+                    ),
+                    array(
+                        'ticket_number' => $ticket_number,
+                        'status' => 0,
+                        'assign_to' => $hand_assigned,
+                        'user_section' => 'HANDOVER_ASSOC',
+                        'activity_status' => 0
+                    )
+                );
+                $this->db->insert_batch('tbl_ticket_status', $ticket_status_data_insertion);
+        
+        }else{
+            echo "<script type='text/javascript'>alert('Invalid customer number please enter valid customer number.');</script>";
         }
     }
 
@@ -323,6 +428,32 @@ class Default_user extends CI_Controller {
             'status' => 0
         );
 
+         //Insert ticket status in db after assigning the tickets
+         $ticket_status_data_insertion = array(
+            array(
+                    'ticket_number' => $ticket_number,
+                    'status' => 0,
+                    'assign_to' => '',
+                    'user_section' => 'INBOUND_ASSOC',
+                    'activity_status' => 0
+                ),
+                array(
+                    'ticket_number' => $ticket_number,
+                    'status' => 0,
+                    'assign_to' => '',
+                    'user_section' => 'OUTBOUND_ASSOC',
+                    'activity_status' => 0
+                ),
+                array(
+                    'ticket_number' => $ticket_number,
+                    'status' => 0,
+                    'assign_to' => $assign_to,
+                    'user_section' => 'HANDOVER_ASSOC',
+                    'activity_status' => 0
+                )
+            );
+            $this->db->insert_batch('tbl_ticket_status', $ticket_status_data_insertion);
+
         $insert_id = $this->Admin_model->add_turnover_schedule($insert_data);
         // check if there's unit/parking in certain project qualified for turnover
         $detail = $this->Admin_model->get_customer_by_custnum($customer_number);
@@ -341,6 +472,32 @@ class Default_user extends CI_Controller {
                     'status' => 0
                 );
                 $insert_id = $this->Admin_model->add_turnover_schedule($insert_data);
+
+                     //Insert ticket status in db after assigning the tickets
+                    $ticket_status_data_insertion = array(
+                        array(
+                                'ticket_number' => $ticket_number,
+                                'status' => 0,
+                                'assign_to' => '',
+                                'user_section' => 'INBOUND_ASSOC',
+                                'activity_status' => 0
+                            ),
+                            array(
+                                'ticket_number' => $ticket_number,
+                                'status' => 0,
+                                'assign_to' => '',
+                                'user_section' => 'OUTBOUND_ASSOC',
+                                'activity_status' => 0
+                            ),
+                            array(
+                                'ticket_number' => $ticket_number,
+                                'status' => 0,
+                                'assign_to' => $assign_to,
+                                'user_section' => 'HANDOVER_ASSOC',
+                                'activity_status' => 0
+                            )
+                        );
+                        $this->db->insert_batch('tbl_ticket_status', $ticket_status_data_insertion);
             }
         }
 
@@ -367,7 +524,42 @@ class Default_user extends CI_Controller {
 
             $this->Admin_model->add_ticket($insert_ticket);
 
+             //Insert ticket status in db after assigning the tickets
+             $ticket_status_data_insertion = array(
+                array(
+                        'ticket_number' => $ticket_number,
+                        'status' => 0,
+                        'assign_to' => '',
+                        'user_section' => 'INBOUND_ASSOC',
+                        'activity_status' => 0
+                    ),
+                    array(
+                        'ticket_number' => $ticket_number,
+                        'status' => 0,
+                        'assign_to' => $outbound_assigned,
+                        'user_section' => 'OUTBOUND_ASSOC',
+                        'activity_status' => 0
+                    ),
+                    array(
+                        'ticket_number' => $ticket_number,
+                        'status' => 0,
+                        'assign_to' => $assign_to,
+                        'user_section' => 'HANDOVER_ASSOC',
+                        'activity_status' => 0
+                    )
+                );
+                $this->db->insert_batch('tbl_ticket_status', $ticket_status_data_insertion);
+
             // add to logs
+            $description = "Ticket has been assigned to Handover Associate for Turnover Process.";
+            $act_data = array(
+              'ticket_id' => $insert_id,
+              'description' => $description,
+              'created_by' => user('id'),
+              'status' => 0
+            );
+            $this->Admin_model->add_activity_log($act_data);
+
             // EMAIL/ SMS TO OUTBOUND
 
             $message = "THE TICKET NUMBER " .$ticket_number. " HAS BEEN ASSIGNED TO YOU. CLICK HERE FOR MORE INFO" .base_url('/outbound/ticket_details/'.$insert_id);
@@ -380,9 +572,11 @@ class Default_user extends CI_Controller {
             $ticket_id_encrypt = $this->dec_enc($ticket_id,'encrypt');
             if($return_email == true) { // && $return_sms == true
                 echo "<script type='text/javascript'>alert('SMS and Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.');</script>";
+                $this->Admin_model->update_link_status(base_url()."default_user/schedule/".$ticket_id_encrypt);
                 redirect('default_user/schedule/'.$ticket_id_encrypt, 'refresh');
             } else {
                 echo "<script type='text/javascript'>alert('Failure to send the email notification.');</script>";
+                $this->Admin_model->update_link_status(base_url()."default_user/schedule/".$ticket_id_encrypt);
                 redirect('default_user/schedule/'.$ticket_id_encrypt, 'refresh');
             }
         }

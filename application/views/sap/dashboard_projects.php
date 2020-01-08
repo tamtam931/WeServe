@@ -12,7 +12,7 @@
 	<h4>Units and specifications</h4>
 	<div class="d-flex">
 		<div class="flex-grow-1">
-			<a href="<?= base_url('sap/project') ?>" data-uri="unit"><button class="load_units btn btn-block btn-outline-dark btn-lg">Units</button></a>
+			<a href="<?= base_url('sap/unit') ?>"><button class="load_units btn btn-block btn-outline-dark btn-lg">Units</button></a>
 		</div>		
 		<div class="flex-grow-1">
 			<a href="<?= base_url('sap/project') ?>" data-uri="unitType"><button class="load_unitTypes btn btn-block btn-outline-dark btn-lg">Unit Types</button></a>

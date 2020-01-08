@@ -1,24 +1,20 @@
 <?php
-/*
-  Updated: from weserve_merge
-  date: 12-27-19
-  Author: Ben Zarmaynine E. Obra
-*/
+
 
 class Outbound extends CI_Controller {
     
     public $user_id = '';
     public $role_id = '';
 
-  public function __construct() {
+	public function __construct() {
       parent::__construct();
       $this->user_id = user('id');
       $this->role_id = user('role');
       $this->load->library('user_agent');
     }
-  public function index($data = null) {
+	public function index($data = null) {
       
-  }
+	}
 
    public function main() {
       $this->load->view('header');
@@ -54,16 +50,17 @@ class Outbound extends CI_Controller {
    }
 
 
-    public function ticket_details() {
-       $ticket = $this->Admin_model->get_ticket_by_id($this->uri->segment(3));
-      $data = array(
-          'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket->ticket_number, $ticket->project_code),
-          'ticket_details' => $this->Admin_model->get_ticket_by_id($this->uri->segment(3))
-      );
-      $this->load->view('header');
-      $this->load->view('outbound_associate/ticket_details', $data);
-      $this->load->view('footer');
-   }
+   public function ticket_details() {
+    $ticket = $this->Admin_model->get_ticket_by_id($this->uri->segment(3));
+     $data = array(
+       'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket->ticket_number, $ticket->project_code_sap),
+       'ticket_details' => $this->Admin_model->get_ticket_by_id($this->uri->segment(3))
+   );
+   $this->load->view('header');
+   $this->load->view('outbound_associate/ticket_details', $data);
+   $this->load->view('footer');
+}
+
 
    public function buyer_details() {
     
@@ -266,6 +263,32 @@ class Outbound extends CI_Controller {
                 );
 
                 $insert_id = $this->Admin_model->add_turnover_schedule($insert_data);
+
+                  //Insert ticket status in db after assigning the tickets
+                  $ticket_status_data_insertion = array(
+                    array(
+                            'ticket_number' => $ticket_number,
+                            'status' => 0,
+                            'assign_to' => '',
+                            'user_section' => 'INBOUND_ASSOC',
+                            'activity_status' => 0
+                        ),
+                        array(
+                            'ticket_number' => $ticket_number,
+                            'status' => 0,
+                            'assign_to' => $assign_to,
+                            'user_section' => 'OUTBOUND_ASSOC',
+                            'activity_status' => 0
+                        ),
+                        array(
+                            'ticket_number' => $ticket_number,
+                            'status' => 0,
+                            'assign_to' => ,
+                            'user_section' => 'HANDOVER_ASSOC',
+                            'activity_status' => 0
+                        )
+                    );
+                    $this->db->insert_batch('tbl_ticket_status', $ticket_status_data_insertion);
             }
         }
 
@@ -495,7 +518,7 @@ class Outbound extends CI_Controller {
           $sched = $hand_assoc_scheds->schedule;
           $sched_chcker[] = $hand_assoc_scheds->schedule;
           $ticket_number = $hand_assoc_scheds->ticket_number;
-          $availability["assoc_assigned_project"] = strtok($ticket_number, '-');
+          $availability["assoc_assigned_project"] = strtok($ticket_number, '-') . '-' . strtok('-');
           $project_code = strtok($ticket_number, '-');
           
           
@@ -585,19 +608,25 @@ class Outbound extends CI_Controller {
       if ($schedule !== '0'){
           foreach($schedule as $data){
               $ticket_number = $data->ticket_number;
-              $project_code = strtok($ticket_number, '-');
+              $project_code = strtok($ticket_number, '-') . '-' . strtok('-');
               //Get the Project id of the hand over assoc sched on the user selected date.
               $project_id_of_assoc_sched_assign = $this->Admin_model->get_project_id_assoc($project_code);
               $assoc_distination = $this->Admin_model->get_project_id_assoc($project_distination);
               foreach($project_id_of_assoc_sched_assign as $data1){
-                  $id = $data1->id;
+                //var_dump($project_id_of_assoc_sched_assign);exit();
+                $id = $data1->id;
                   foreach($assoc_distination as $data2){
-                      $id2 = $data2->id;
-                      $distance_project = $this->Admin_model->get_distance_project($id , $id2);   
-                      foreach($distance_project as $data_dis){
-                          $distance = $data_dis->distance;
-                          return $distance;
+                      if (!empty($data2->id)){
+                        $id2 = $data2->id;
+                        $distance_project = $this->Admin_model->get_distance_project($id , $id2);   
+                        foreach($distance_project as $data_dis){
+                            $distance = $data_dis->distance;
+                            return $distance;
+                        }
+                      }else{
+                        //Do nothing
                       }
+                     
                   }
               }
           }
@@ -617,7 +646,6 @@ class Outbound extends CI_Controller {
       $assign_to = $this->input->post('assign_to');
       $sequence = 1;
       $new_date = date("Y/m/d H:i:s", $date);
-      
       $dt = new DateTime($new_date);
       $new_dt = $dt->setTime(intval($time), 00);
 
@@ -654,9 +682,35 @@ class Outbound extends CI_Controller {
                   'status' => 0
               );
               $insert_id = $this->Admin_model->add_turnover_schedule($insert_data);
+
+                //Insert ticket status in db after assigning the tickets
+                $ticket_status_data_insertion = array(
+                    array(
+                            'ticket_number' => $ticket_number,
+                            'status' => 0,
+                            'assign_to' => '',
+                            'user_section' => 'INBOUND_ASSOC',
+                            'activity_status' => 0
+                        ),
+                        array(
+                            'ticket_number' => $ticket_number,
+                            'status' => 0,
+                            'assign_to' => $assign_to,
+                            'user_section' => 'OUTBOUND_ASSOC',
+                            'activity_status' => 0
+                        ),
+                        array(
+                            'ticket_number' => $ticket_number,
+                            'status' => 0,
+                            'assign_to' => '',
+                            'user_section' => 'HANDOVER_ASSOC',
+                            'activity_status' => 0
+                        )
+                    );
+                    $this->db->insert_batch('tbl_ticket_status', $ticket_status_data_insertion);
           }
       }
-
+     $this->send_email_for_confirmation();
      if($insert_id > 0) {
           // create ticket - random assigning to outbound associate
         $o_associates = array();
@@ -682,28 +736,32 @@ class Outbound extends CI_Controller {
            //update ticket subject
           $this->Admin_model->update_ticket_subject_only($ticket_number,"TURNOVER", "FOR TURNOVER");
           // add to logs
+          
           $tix = $this->Admin_model->get_ticket_by_ticket_number($ticket_id);
           $description = "Unit Owner already confirmed the turnover schedule.";
-          $act_data = array(
-            'ticket_id' => $tix->ticket_id,
-            'description' => $description,
-            'created_by' => user('id'),
-            'status' => 0
-          );
-          $this->Admin_model->add_activity_log($act_data);
+          foreach($tix as $t){
+            $act_data = array(
+                'ticket_id' => $t->ticket_id,
+                'description' => $description,
+                'created_by' => user('id'),
+                'status' => 0
+              );
+              $this->Admin_model->add_activity_log($act_data);
+          }
+          
 
           // EMAIL/ SMS TO OUTBOUND
 
           $user = $this->Admin_model->get_user_by_id($outbound_assigned);
           $message = "THE TICKET NUMBER " .$ticket_number. " HAS BEEN ASSIGNED TO YOU. CLICK HERE FOR MORE INFO" .base_url('/outbound/ticket_details/'.$insert_id);
-          $return_email = $this->send_email($user->email_address, 'UNIT/PARKING TURNOVER', $message);
+          //$return_email = $this->send_email($user->email_address, 'UNIT/PARKING TURNOVER', $message);
           //$return_sms = $this->send_sms($user->mobile_number, $message);
 
 
           // EMAIL/SMS TO UNIT OWNER
            $message = "TURNOVER SCHEDULE HAS BEEN BOOKED";
-          $return_email = $this->send_email($detail->email_address, 'UNIT TURNOVER SCHEDULE', $message);
-          $return_sms = $this->send_sms($detail->mobile_number, $message);
+          //$return_email = $this->send_email($detail->email_address, 'UNIT TURNOVER SCHEDULE', $message);
+          //$return_sms = $this->send_sms($detail->mobile_number, $message);
           $ticket_id_encrypt = $this->dec_enc($customer_number,'encrypt');
           if($return_email == true) { // && $return_sms == true
               echo "<script type='text/javascript'>alert('SMS and Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.');</script>";
@@ -751,6 +809,27 @@ class Outbound extends CI_Controller {
       }
   }
 
+
+     //For Sending of Email for unit owner for schedule confirmation (After scheduling)
+     public function send_email_for_confirmation(){
+        $customer_number = $this->input->post('customer_number');
+        $encrypt_customer_number = $this->dec_enc($customer_number,'encrypt');
+        $get_customers = $this->Admin_model->get_customer_by_custnum($customer_number);
+
+        foreach($get_customers as $get_customer){
+            $get_customer_email = $get_customer->email_address;
+            $message = "Here's the link to confirm you schedule...";
+            $link = base_url()."default_user/schedule_confirmation/". $encrypt_customer_number;
+            $send_email = $this->send_email($get_customer_email, 'Link for schedule confirmation', $message . ' ' . $link );
+            if($send_email == true) { // && $return_sms == true
+                echo "<script type='text/javascript'>alert('Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.');</script>";
+            } else {
+                echo "<script type='text/javascript'>alert('Failure to send the email notification.');</script>";
+            }
+        }
+    }
+
+    
 }
 
 
