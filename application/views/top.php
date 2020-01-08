@@ -10,7 +10,7 @@
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <ul class="nav navbar-nav">
               <?php if(user('position') == 0 || user('position') <= 5 ): ?>
-               <li><a href="#" class="pl-md-0 p-3 text-white">Home</a></li>
+               <!-- <li><a href="#" class="pl-md-0 p-3 text-white">Home</a></li> -->
                 <li><a href="<?= base_url('admin/my_dashboard') ?>" class="pl-md-0 p-3 text-white">My Dashboard</a></li>
                 <li><a href="<?= base_url('admin/dashboard') ?>" class="p-3 text-decoration-none text-white">Turnover Dashboard</a></li>
                 <li><a href="<?= base_url('admin/schedule') ?>" class="p-3 text-decoration-none text-white">Turnover Schedule</a></li>

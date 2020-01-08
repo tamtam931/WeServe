@@ -84,6 +84,38 @@ class weserve_sap extends CI_Model {
         return $this->sub_resource;
     }
 
+    /*
+		
+    */
+
+    public function SUpdate($resource,$body){
+
+    	$weserve_sap = false;
+
+    	if ($resource && $body) {
+    		
+    		$body_checker = count($body);
+
+    		if ($body_checker > 0) {
+    			
+				$raw = $this->weserve_sap_config->findOrfail($this->where_activated);
+				$config = $raw[0];
+
+				$weserve_sap = $this->weserveSAPinit($raw[0],$main_resource,$body);
+
+    		}
+
+    		return $weserve_sap;
+
+    	} else {
+
+    		return false;
+    	}
+
+    }
+
+    //End
+
 	
 
 	public function generateUnitAttributes($unit_obj){
@@ -126,7 +158,7 @@ class weserve_sap extends CI_Model {
 	//End
 
 	/*
-		Private function for Guzzle HTTP initialization
+		Private function for Guzzle HTTP initialization GET
 	*/
 
 	private function weserveSAPinit($params,$resource){
@@ -152,7 +184,36 @@ class weserve_sap extends CI_Model {
 		}
 	}		
 
-	//End	
+	//End
+
+	/*
+		Private function for Guzzle HTTP initialization POST
+	*/
+
+	private function weserveSAPinitPOST($params,$resource,$body){
+
+		if ($params && $resource) {
+
+			$this->load->library('weserve_guzzle',['authentication' => $params]);
+
+			$data = $this->weserve_guzzle->weserve_sap_put($resource,$body);
+
+			if ($data['status']) {
+
+				return $data;
+
+			} else {
+
+				return false;
+			}
+
+		} else {
+
+			return false;
+		}
+	}		
+
+	//End			
 
 
 }

@@ -85,7 +85,7 @@
   </div>
 
 
-  <script type="text/javascript" src="<?= base_url('assets/js/jquery-3.4.1.min.js') ?>"></script>	
+<script type="text/javascript" src="<?= base_url('assets/js/jquery-3.4.1.min.js') ?>"></script>	
 <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.2/moment.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.1.1/fullcalendar.min.js"></script> 
 <script type="text/javascript" src="http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>

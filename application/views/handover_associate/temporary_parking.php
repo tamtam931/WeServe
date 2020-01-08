@@ -1,8 +1,3 @@
-<!--
-  Updated: from weserve_merge
-  date: 12-27-19
-  Author: Ben Zarmaynine E. Obra
--->
 <div class="container py-5 mb5" style="text-align: center;">
 	<?php
 	$ticket_details = $this->Admin_model->get_ticket_by_id($this->uri->segment(3));

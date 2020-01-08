@@ -8,20 +8,20 @@ border: 1px solid black;
 </style>
 <?php $count = 0; ?>
 <div class="container py-5 mb5">
-<!--
-	Updated: from weserve_merge
-	date: 12-27-19
-	Author: Ben Zarmaynine E. Obra
--->	
   <h3 class="mb-3">TURN OVER PROCESS</h3>
-    <?php if($ticket_bind) : 
-    	$customer_number = "";
-    	$unit_number = "";
-    	$parking = "";
+    <?php 
+    if($ticket_bind) : 
+
+    	$customer_number = array();
+    	$unit_number = array();
+    	$parking_number = array();
+    	$unit_type = array();
     	foreach($ticket_bind as $bind):
-    		$customer_number .= $bind->customer_number . ' ,';
-    		$unit_number .= $bind->unit_number . $bind->unit_desc . ' ,';
-    		$parking .= $bind->parking_number . ' ,';
+    		$unit = $bind->unit_number . $bind->unit_desc;
+    		array_push($customer_number, $bind->customer_number);
+    		array_push($unit_number, $unit);;
+    		array_push($parking_number, $bind->parking_number);
+    		array_push($unit_type, $bind->unit_type_desc);
     	endforeach;
     endif; ?>
   	<div class="row">
@@ -34,7 +34,7 @@ border: 1px solid black;
   				<div class="col-md-4 mb-3">
 		            <label for="customer_num">Customer Number</label>
 
-		            <input type="text" class="form-control" id="customer_num" name="customer_num" placeholder="" value="<?= $customer_number ?>" readonly>
+		            <input type="text" class="form-control" id="customer_num" name="customer_num" placeholder="" value="<?= implode("','",$customer_number) ?>" readonly>
 			    </div>
 
 			    <div class="col-md-4 mb-3">
@@ -57,15 +57,15 @@ border: 1px solid black;
 			    </div>
 			    <div class="col-md-4 mb-3">
 		            <label for="unit_number">Unit Number</label>
-		            <input type="text" class="form-control" id="unit_number" name="unit_number" placeholder="" value="<?= $unit_number ?>" readonly>
+		            <input type="text" class="form-control" id="unit_number" name="unit_number" placeholder="" value="<?= implode("','",$unit_number) ?>" readonly>
 			    </div>
 			    <div class="col-md-4 mb-3">
 		            <label for="unit_type">Unit Type</label>
-		            <input type="text" class="form-control" id="unit_type" name="unit_type" placeholder="" value="<?= $ticket_details->unit_type ?>" readonly>
+		            <input type="text" class="form-control" id="unit_type" name="unit_type" placeholder="" value="<?= implode("','",$unit_type) ?>" readonly>
 			    </div>
 			    <div class="col-md-4 mb-3">
 		            <label for="parking">Parking Number</label>
-		            <input type="text" class="form-control" id="parking" name="parking" placeholder="" value="<?= $parking ?>" readonly>
+		            <input type="text" class="form-control" id="parking" name="parking" placeholder="" value="<?= implode("','",$parking_number) ?>" readonly>
 			    </div>
 
 			    <div class="col-md-12 mb-3">
@@ -410,8 +410,9 @@ border: 1px solid black;
 			     	Are you going to accept this unit despite of noted punchlist?
 			      </div>
 			      <div class="modal-footer">
-			        <button type="button" data-dismiss="modal" data-toggle="modal" data-target="#acceptance_signature" class="btn btn-primary">Yes</button>
-			        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+			        <button type="button" data-dismiss="modal" data-toggle="modal" data-target="#acceptance_signature" class="btn-accepted btn btn-primary">Yes</button>
+
+			        <button type="button" onclick="not_accepted_punchlist('<?= $ticket_details->project_code_sap ?>','<?= $ticket_details->runitid ?>')" class="btn btn-secondary">No</button>
 			      </div>
 			    </div>
 			  </div>
@@ -431,7 +432,7 @@ border: 1px solid black;
 			      	<form id="form_other_concern"  role="form" method="POST" enctype="multipart/form-data">
 			      		<div class="modal-body">
 			      			<input type="hidden" class="form-control" id="ticket_id" name="ticket_id" value="<?= $ticket_details->ticket_id ?>">
-			      			<?php $parkings = $this->Admin_model->get_all_project_parking($ticket_details->project_code);  ?>
+			      			<?php $parkings = $this->Admin_model->get_all_project_parking($ticket_details->project_code_sap);  ?>
 					        <div class="col-md-12 mb-3">
 						    	<label for="temp_parking">Temporary Parking </label>
 					            <select class="custom-select d-block w-100" id="temp_parking" name="temp_parking" onchange="temp_parking_show()">
@@ -486,8 +487,8 @@ border: 1px solid black;
 			        Other concern will not be saved, do you wish to continue? 
 			      </div>
 			      <div class="modal-footer">
-			        <button type="button" onClick="location.reload();" class="btn btn-primary" data-dismiss="modal" >Yes</button>
-			        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+			        <button type="button" class="btn btn-primary" data-dismiss="modal">Yes</button>
+			        <button type="button" class="btn btn-secondary">No</button>
 			      </div>
 			    </div>
 			  </div>

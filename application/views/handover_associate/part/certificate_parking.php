@@ -1,8 +1,4 @@
-<!--
-	Updated: from weserve_merge
-	date: 12-27-19
-	Author: Ben Zarmaynine E. Obra
--->
+
 <div id="certificate_div" class="row" style=" text-align: center; ">
 		<div class="col-md-12"><b>CERTIFICATE OF PURCHASE AND DELIVERY/TURNOVER</b></div>
 		<?php if($ticket_bind) : 

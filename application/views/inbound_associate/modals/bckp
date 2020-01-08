@@ -1,9 +1,5 @@
 <?php 
-/*
-  Updated: from weserve_merge
-  date: 12-27-19
-  Author: Ben Zarmaynine E. Obra
-*/
+
 $time = array(); $associates = array();  $db_associates = array();
 $reserved1 = ''; $reserved2 = ''; $reserved3 = ''; $reserved4 = ''; $avail1='true'; $avail2='true'; $avail3='true'; $avail4='true';
 $default_time = array('9','11','14','16');

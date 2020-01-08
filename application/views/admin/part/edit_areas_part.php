@@ -1,18 +1,25 @@
 <?php 
 	if($checking_area_id):
-	$checking_area = $this->Admin_model->get_checking_areas_by_id($checking_area_id); ?>
+	$checking_area = $this->Admin_model->get_checking_areas_by_id($checking_area_id); 
+	// var_dump($checking_area); exit;
+	$areas = $this->Admin_model->get_checking_areas_list();?>
 
 
 	<form action="<?= base_url('admin/edit_checking_area'); ?>" method="post" role="form" class="needs-validation">
 		<input type="hidden" class="form-control" id="edit_area_id" name = "edit_area_id" value="<?=  $checking_area_id ?>">
 		<input type="hidden" class="form-control" id="edit_type_id" name = "edit_type_id" value="<?=  $checking_area->unit_type ?>">
+		<input type="hidden" class="form-control" id="project_id" name = "project_id" value="<?=  $checking_area->project ?>">
 		<div class="col-md-4 mb-3">
 			<h4>Edit Checking Area</h4>
 		</div>
 		<div class="row">
 	    	<div class="col-md-4 mb-3">
-	            <label for="firstname">Areas for Checking</label>
-	            <input type="text" class="form-control" id="area" name="area" placeholder="Area for Checking" value="<?= $checking_area->area_desc; ?>" required>
+	           <label for="area">Areas for Checking</label>
+	            <select class="custom-select d-block w-100" id="area" name="area" required>
+	            	<?php foreach($areas as $area): ?>
+	              	<option value="<?= $area->id ?>" <?php if($area->id == $checking_area->area_id){ echo 'selected'; } ?>><?= $area->area_description; ?></option>
+	              	<?php endforeach; ?>
+	            </select>
 	        </div>
 	        <div class="col-md-4 mb-3">
 	            <label for="required_check">Required to Check?</label>

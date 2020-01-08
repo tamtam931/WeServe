@@ -1,11 +1,6 @@
 <?= $this->load->view('top', '', TRUE) ?>
 
 <?php if($customer):  ?>
-<!--
-	Updated: from weserve_merge
-	date: 12-27-19
-	Author: Ben Zarmaynine E. Obra
--->	
 <div class="container py-5 mb5">
 	<div class="ht-tm-codeblock">
 		<ul class="nav nav-tabs ht-tm-element">

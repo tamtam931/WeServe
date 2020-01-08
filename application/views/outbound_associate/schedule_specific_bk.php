@@ -1,10 +1,5 @@
 <?= $this->load->view('top', '', TRUE) ?>
 <div class="container py-5 mb5">
-<!--
-	Updated: from weserve_merge
-	date: 12-27-19
-	Author: Ben Zarmaynine E. Obra
--->	
   <h3 class="mb-3">TURN OVER SCHEDULE</h3>
  <?php $ticket_id = $this->uri->segment(3); $detail='';?>
  <?php if($ticket_id) :?>

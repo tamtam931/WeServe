@@ -2,11 +2,6 @@
 
 <?php $pwd_hist = $this->Admin_model->get_last_password_update_by_id(user('id')); ?>
 <?php if($pwd_hist == NULL): ?>
-<!--
-  Updated: from weserve_merge
-  date: 12-27-19
-  Author: Ben Zarmaynine E. Obra
--->  
     <div id="change_password" class="modal fade" role="dialog">
       <form action="<?= base_url('admin/change_password_required'); ?>" method="post" role="form">
         <div class="modal-dialog">

@@ -1,36 +1,36 @@
 <?= $this->load->view('top', '', TRUE) ?>
-<!--
-	Updated: from weserve_merge
-	date: 12-27-19
-	Author: Ben Zarmaynine E. Obra
--->
 <div class="container py-5 mb5">
   <h3 class="mb-3">TICKET DETAILS</h3>
-  	 <?php  if($ticket_bind) : 
-    	$customer_number = "";
-    	$unit_number = "";
-    	$parking = "";
-    	$customer_name = "";
-    	$unit_type = "";
+  	 <?php  
+  	 	$customer_number = array();
+    	$unit_number = array();
+    	$parking = array();
+    	$customer_name = array();
+    	$unit_type = array();
     	$ticket_type = "";
+  	 if($ticket_bind) : 
+    	
     	foreach($ticket_bind as $bind):
-    		$customer_number .= $bind->customer_number . ' ,';
-    		$unit_number .= $bind->unit_number . $bind->unit_desc . ' ,';
-    		$parking .= $bind->parking_number . ' ,';
-    		$customer_name .= $bind->customer_name . ' ,';
-    		$unit_type .= $bind->unit_type . ' ,';
+    		$unit = $bind->unit_number . $bind->unit_desc;
+    		array_push($customer_number, $bind->customer_number);
+    		if($unit) { array_push($unit_number, $unit); }
+    		array_push($customer_name, $bind->customer_name);
+    		array_push($unit_type, $bind->unit_type_desc);
+    		if($bind->parking_number) {array_push($parking, $bind->parking_number); }
     	endforeach;
 
-    	if($unit_number && !$parking) {
+    	
+    	if($unit_number && empty($parking)) {
     		// UNIT ONLY
     		$ticket_type = 'U';
-    	} else if (!$unit_number && $parking) {
+    	} else if (empty($unit_number) && $parking) {
     		// PARKING ONLY
     		$ticket_type = 'P';
     	} else if($unit_number && $parking) {
     		// UNIT AND PRKING
     		$ticket_type = 'UP';
     	}
+    	
     endif; ?>
   	<div class="row">
 		<div class= "col-md-12">
@@ -210,16 +210,16 @@
 			            <input type="text" class="form-control" id="tower" name="tower" placeholder="" value="<?= $ticket_details->tower ?>">
 
 			            <label for="unit_number">Unit Number</label>
-			            <input type="text" class="form-control" id="unit_number" name="unit_number" placeholder="" value="<?= $unit_number ?>">
+			            <input type="text" class="form-control" id="unit_number" name="unit_number" placeholder="" value="<?= implode("','",$unit_number) ?>">
 
 			            <label for="unit">Unit</label>
-			            <input type="text" class="form-control" id="unit" name="unit" placeholder="" value="<?= $unit_type ?>">
+			            <input type="text" class="form-control" id="unit" name="unit" placeholder="" value="<?= implode("','",$unit_type) ?>">
 
 			            <label for="parking">Parking Number</label>
-			            <input type="text" class="form-control" id="parking" name="parking" placeholder="" value="<?= $parking ?>">
+			            <input type="text" class="form-control" id="parking" name="parking" placeholder="" value="<?= implode("','",$parking) ?>">
 
 			            <label for="customer_name">Customer Name</label>
-			            <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="" value="<?= $customer_name ?>">
+			            <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="" value=" <?= implode("','",$customer_name) ?>">
 
 			            <label for="ticket_type">Ticket Type</label>
 			            <input type="text" class="form-control" id="ticket_type" name="ticket_type" placeholder="" value="<?= $ticket_details->subject ?>">

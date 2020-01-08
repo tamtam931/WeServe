@@ -146,11 +146,31 @@ class weserve_guzzle {
 
 	}
 
-	public function weserve_sap_put($resource){
+	public function weserve_sap_put($resource,$body){
 
 		if ($resource) {
 			
 			$find = $this->weserve_sap_get($resource,true);
+
+			$data = json_decode($find,true);
+
+			$response = $this->client->put($resource, ['headers' => ['Accept' => 'application/json','x-csrf-token' => 'fetch','Content-Type' => 'application/json'],'body' => $body, 'cookies' => $user_cookie]);		
+			$statusCode = $response->getStatusCode();
+
+			$returnStatus = $this->statusCode($statusCode);
+
+			$validation['phrase'] = $response->getReasonPhrase();
+
+			if ($returnStatus) {
+				
+				$validation['status'] = $statusCode;
+				
+			} else {
+
+				$validation['status'] = false;
+			}
+
+			return $validation;
 
 		} else {
 

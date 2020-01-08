@@ -1,8 +1,4 @@
-<!--
-  Updated: from weserve_merge
-  date: 12-27-19
-  Author: Ben Zarmaynine E. Obra
--->
+
 
 <!-- <input type="text" id="associate" name="associate" value="<?= $assign_to; ?>" class="form-control" > -->
 <div class="d-block my-3">

@@ -7,42 +7,42 @@
   			<div class="row">
   				<div class="col-md-4 mb-3">
 		            <label for="ticket_num">Ticket Number</label>
-		            <input type="text" class="form-control" id="ticket_num" name="ticket_num" placeholder="" value="<?= $ticket_details->ticket_number ?>">
+		            <input type="text" class="form-control" id="ticket_num" name="ticket_num" placeholder="" value="<?= $ticket_details->ticket_number ?>" readonly>
 			    </div>
   				<div class="col-md-4 mb-3">
 		            <label for="customer_num">Customer Number</label>
-		            <input type="text" class="form-control" id="customer_num" name="customer_num" placeholder="" value="12345">
+		            <input type="text" class="form-control" id="customer_num" name="customer_num" placeholder="" value="<?= $ticket_details->customer_number ?>" readonly>
 			    </div>
 
 			    <div class="col-md-4 mb-3">
 		            <label for="customer_name">Customer Name</label>
-		            <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="" value="XXX YYYY">
+		            <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="" value="<?= $ticket_details->customer_name ?>" readonly>
 			    </div>
 
 			    <div class="col-md-4 mb-3">
 		            <label for="attorney">Attorney-In-Fact</label>
-		            <input type="text" class="form-control" id="attorney" name="attorney" placeholder="" value="ZZZZZ WWWWW">
+		            <input type="text" class="form-control" id="attorney" name="attorney" placeholder="" value="ZZZZZ WWWWW" readonly>
 			    </div>
 
   				<div class="col-md-4 mb-3">
 		            <label for="project">Property</label>
-		            <input type="text" class="form-control" id="property" name="property" placeholder="" value="The Grand Midori Makati">
+		            <input type="text" class="form-control" id="property" name="property" placeholder="" value="The Grand Midori Makati" readonly>
 			    </div>
 			    <div class="col-md-4 mb-3">
 		            <label for="tower">Tower</label>
-		            <input type="text" class="form-control" id="tower" name="tower" placeholder="" value="1">
+		            <input type="text" class="form-control" id="tower" name="tower" placeholder="" value="1" readonly>
 			    </div>
 			    <div class="col-md-4 mb-3">
 		            <label for="unit_number">Unit Number</label>
-		            <input type="text" class="form-control" id="unit_number" name="unit_number" placeholder="" value="1A">
+		            <input type="text" class="form-control" id="unit_number" name="unit_number" placeholder="" value="1A" readonly>
 			    </div>
 			    <div class="col-md-4 mb-3">
 		            <label for="unit_type">Unit Type</label>
-		            <input type="text" class="form-control" id="unit_type" name="unit_type" placeholder="" value="One Bedroom">
+		            <input type="text" class="form-control" id="unit_type" name="unit_type" placeholder="" value="One Bedroom" readonly>
 			    </div>
 			    <div class="col-md-4 mb-3">
 		            <label for="parking">Parking Number</label>
-		            <input type="text" class="form-control" id="parking" name="parking" placeholder="" value="LG1">
+		            <input type="text" class="form-control" id="parking" name="parking" placeholder="" value="LG1" readonly>
 			    </div>
 
 			    <div class="col-md-12 mb-3">
@@ -120,7 +120,8 @@
 						        </div>
 						    </th>
 						    <th scope="row">
-						      	<textarea rows="3" class="form-control observation_input" name="observation<?= $count ?>" onkeyup="show_upload_btn(<?= $checklist->id ?>, this.value)"><?= $obser_txt; ?></textarea>
+						      	<textarea rows="3" class="form-control observation_input" name="observation<?= $count ?>"><?= $obser_txt; ?></textarea> 
+						      	<!--  onkeyup="show_upload_btn(<?= $checklist->id ?>, this.value)" -->
 						    </th>
 						    <th scope="row">
 						    	<?php $imgs = $this->Admin_model->get_ticket_images_by_category($ticket_details->ticket_number,$checklist->id); ?>
@@ -130,7 +131,7 @@
 						    		<?php endforeach; ?>
 						    		<button type="button" id="image_btn<?= $checklist->id ?>" data-toggle="modal" data-target="#add_image<?= $checklist->id ?>" class="btn btn-default"><span style="font-size: 50px; color:#343758;" class="fa fa-camera"></span></button>
 					    		<?php else: ?>
-					    			<button type="button" id="image_btn<?= $checklist->id ?>" data-toggle="modal" data-target="#add_image<?= $checklist->id ?>" class="btn btn-block btn-default image_btn"><span style="font-size: 50px; color:#343758;" class="fa fa-camera"></span></button>
+					    			<button type="button" id="image_btn<?= $checklist->id ?>" data-toggle="modal" data-target="#add_image<?= $checklist->id ?>" class="btn btn-default image_btn"><span style="font-size: 50px; color:#343758;" class="fa fa-camera"></span></button>
 					    		<?php endif; ?>
 						      	 
 						    </th>

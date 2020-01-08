@@ -1,8 +1,4 @@
-<!--
-  Updated: from weserve_merge
-  date: 12-27-19
-  Author: Ben Zarmaynine E. Obra
--->
+
 <div class="container py-5 mb5" style="text-align: center;">
   <h3 class="mb-3">ACCEPTANCE OF UNIT / PARKING</h3>
   	<div id="certificate_div">
@@ -12,14 +8,14 @@
     	); ?>
       <!-- UNIT ONLY -->
       <?php  if($ticket_type == 'U') :?>
-   	  <?= $this->load->view('handover_associate/part/certificate_unit', $data, TRUE) ?>
-     	<!-- PARKING ONLY -->
-     	<?php elseif($ticket_type == 'P') :?>
-     	<?= $this->load->view('handover_associate/part/certificate_parking', $data, TRUE) ?>
-     	<!-- UNIT AND PARKING -->
-     	<?php elseif($ticket_type == 'UP') :?>
-     	<?= $this->load->view('handover_associate/part/certificate_unit_parking', $data, TRUE) ?>
-    	<?php endif; ?>
+      <?= $this->load->view('handover_associate/part/certificate_unit', $data, TRUE) ?>
+      <!-- PARKING ONLY -->
+      <?php elseif($ticket_type == 'P') :?>
+      <?= $this->load->view('handover_associate/part/certificate_parking', $data, TRUE) ?>
+      <!-- UNIT AND PARKING -->
+      <?php elseif($ticket_type == 'UP') :?>
+      <?= $this->load->view('handover_associate/part/certificate_unit_parking', $data, TRUE) ?>
+      <?php endif; ?>
     </div>
   	<div class="col-md-12" style="padding-top: 50px;">
       <button type="button" data-toggle="modal" data-target="#saveConfirm" class="btn btn-primary"><span class="fas fa-download mr-1"></span>Save</button>

@@ -1,9 +1,4 @@
 <?= $this->load->view('top', '', TRUE) ?>
-<!--
-	Updated: from weserve_merge
-	date: 12-27-19
-	Author: Ben Zarmaynine E. Obra
--->
 <div class="container py-5 mb5">
   <h3 class="mb-3">TURN OVER SCHEDULE</h3>
  <?php $ticket_id = $this->uri->segment(3); $detail='';?>
@@ -18,8 +13,8 @@
 		    	<form action="<?= base_url('inbound/add_schedule_available'); ?>" method="post" role="form" class="needs-validation">
 		    		<input type="hidden" class="form-control" id="logged_user" name = "logged_user" value="<?= user('id'); ?>">
 		    		<input type="hidden" class="form-control" id="customer_number" name = "customer_number" value="<?= $detail->customer_number?>">
-		    		<input type="hidden" class="form-control" id="project_id" name = "project_id" value="<?= $detail->project_code?>">
-					<input type="hidden" class="form-control" id="project" name = "project" value="<?= $detail->project_code?>">
+					<input type="hidden" class="form-control" id="project" name = "project" value="<?= $detail->project_code_sap?>">
+					<input type="hidden" class="form-control" id="project" name = "project" value="<?= $detail->project_code_sap?>">
 	        		<input type="hidden" class="form-control" id="assign_to" name = "assign_to" value="">
 	        		<input type="hidden" class="form-control" id="ticket_id" name = "ticket_id" value="<?= $ticket_id ?>">
 					<div class="row">
@@ -220,7 +215,10 @@ function check_availability(available,formData) {
 				$ajaxData = $.ajax({
 					url: "<?= base_url('admin/add_schedule_logs') ?>",
 					method: "POST",
-					data: {data : formData},
+					data: {
+						data : formData ,
+						customer_number : $('#customer_number').val() 
+					},
 					success:function(data){
 						//$('#modalBody').html(data);
 					},

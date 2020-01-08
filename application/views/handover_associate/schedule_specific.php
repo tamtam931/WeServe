@@ -1,9 +1,4 @@
 <?= $this->load->view('top', '', TRUE) ?>
-<!--
-	Updated: from weserve_merge
-	date: 12-27-19
-	Author: Ben Zarmaynine E. Obra
--->
 <div class="container py-5 mb5">
   <h3 class="mb-3">TURN OVER SCHEDULE</h3>
  <?php $ticket_id = $this->uri->segment(3); $detail='';?>
@@ -18,7 +13,7 @@
 		    	<form action="<?= base_url('inbound/add_schedule'); ?>" method="post" role="form" class="needs-validation">
 		    		<input type="hidden" class="form-control" id="logged_user" name = "logged_user" value="<?= user('id'); ?>">
 		    		<input type="hidden" class="form-control" id="customer_number" name = "customer_number" value="<?= $detail->customer_number?>">
-		    		<input type="hidden" class="form-control" id="project" name = "project" value="<?= $detail->project_code?>">
+					<input type="hidden" class="form-control" id="project" name = "project" value="<?= $detail->project_code . '-' . $detail->project_code_sap?>">
 	        		<div class="row">
 	        			<div class="col-md-4 mb-3">
 				            <label for="property">Property</label>

@@ -53,6 +53,17 @@ class Admin extends CI_Controller {
             $this->load->view('footer');
     }
 
+    /*public function dashboard() {
+
+         $data = array(
+            'units' => ''
+        );
+        
+
+        $this->load->view('header');
+        $this->load->view('admin/dashboard', $data);
+        $this->load->view('footer');
+   }*/
    /*
         Added: controllers for function `dashboard()`
         Author: Ben Zarmaynine E. Obra
@@ -153,7 +164,7 @@ class Admin extends CI_Controller {
         }        
     }
 
-    //End  
+    //End   
 
     public function schedule() {
          $data = array(
@@ -190,30 +201,37 @@ class Admin extends CI_Controller {
         $this->load->view('footer');
    }
 
-    public function administration() {
-        $data = array(
-            'positions' => $this->Admin_model->get_positions(),
-            'users' => $this->Admin_model->get_users(),
-            'unit_types' => $this->Admin_model->get_unit_types_in_checking_areas(),
-            'checking_areas' => $this->Admin_model->get_checking_areas(),
-            'checking_lists' => $this->Admin_model->get_checking_areas_list(),
-            'sections' => $this->Admin_model->get_all_sections(),
-            'roles' => $this->Admin_model->get_all_roles(),
-            'projects' => $this->Admin_model->get_projects()
-        );
-        $this->load->view('header');
-        $this->load->view('admin/administration', $data);
-        $this->load->view('footer');
-   }
+   public function administration() {
+    
+    $data = array(
+        'positions' => $this->Admin_model->get_positions(),
+        'users' => $this->Admin_model->get_users(),
+        'unit_types' => $this->Admin_model->get_unit_types_in_checking_areas(),
+        'unit_types_complete' => $this->Admin_model->get_unit_types(),
+        'checking_areas' => $this->Admin_model->get_checking_areas(),
+        'checking_lists' => $this->Admin_model->get_checking_areas_list(),
+        'sections' => $this->Admin_model->get_all_sections(),
+        'roles' => $this->Admin_model->get_all_roles(),
+        'projects' => $this->Admin_model->get_projects()
+    );
 
-   public function ticket_details() {
+    $this->load->view('header');
+    $this->load->view('admin/administration', $data);
+    $this->load->view('footer');
+}
+
+    public function ticket_details() {
+        $ticket = $this->Admin_model->get_ticket_by_id($this->uri->segment(3));
+
         $data = array(
-             'ticket_details' => $this->Admin_model->get_ticket_by_id($this->uri->segment(3))
-        );
+        'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket->ticket_number, $ticket->project_code_sap),
+        'ticket_details' => $this->Admin_model->get_ticket_by_id($this->uri->segment(3))
+    );
         $this->load->view('header');
         $this->load->view('admin/ticket_details', $data);
         $this->load->view('footer');
-   }
+    }
+
 
    public function turnover_process() {
           $data = array(
@@ -281,9 +299,6 @@ class Admin extends CI_Controller {
             redirect('admin/administration/', 'refresh');
         }
 
-
-    
-     
    }
 
    public function delete_user(){
@@ -611,22 +626,22 @@ class Admin extends CI_Controller {
     }
   
 
-    
-
-
     public function add_schedule_logs() {
         $url_data = $this->input->post('data');
-        parse_str($url_data);
+        parse_str($url_data , $details);
 
-        $user_id = $logged_user;
-        $property = $property;
-        $unit_number = $unit_number;
-        $parking = $parking;
+        $user_id = $details['logged_user'];
+        $property = $details['property'];
+        //$unit_number = $unit_number;
+        //$parking = $parking;
         $customer_name = $this->input->post('customer_number');
-        $date = strtotime($selected_dt);
-        $time = $schedule_time;
+        $date = strtotime($details['selected_dt']);
+        $time = $details['schedule_time'];
+        $project = $this->input->post('project');
 
-
+        $tickets = $this->Admin_model->get_all_tickets();
+        $ticket_number = trim($project .'-'. date("Y"). '-' .sprintf("%'.05d\n", count($tickets)+1));
+        
         $new_date = date("Y/m/d H:i:s", $date);
         $dt = new DateTime($new_date);
         $new_dt = $dt->setTime(intval($time), 00);
@@ -655,21 +670,18 @@ class Admin extends CI_Controller {
         //     $key = array_rand($diff,1);
         //     $assign_to = $diff[$key];
         // }
-
         $insert_data = array(
-            //'property' =>  $property,
-            //'unit_number' => $unit_number,
-            //'parking_number' => $parking,
             'customer_number' => $customer_name,
+            'ticket_number' => $ticket_number,
             'schedule' => $new_dt->format('Y-m-d H:i:s'),
-            'assigned_to' => 0,
+            'assigned_to' => $this->input->post('assign_to'),
             'sequence' => $sequence,
             'status' => 1
         );
-
         $this->Admin_model->add_turnover_schedule($insert_data);
-
+       
     }
+
 
 
     public function get_schedule()
@@ -716,7 +728,6 @@ class Admin extends CI_Controller {
             redirect('admin/my_dashboard/', 'refresh');
         }
        
-
     }
 
     public function checking_areas_part() {
@@ -759,7 +770,14 @@ class Admin extends CI_Controller {
             'required' => $required_check
         );
 
-        $insert_id = $this->Admin_model->add_checking_area($insert_data);
+        $checker = $this->Admin_model->validate_checking_areas($type_id, $project_id, $area);
+        if($checker) {
+            echo "<script type='text/javascript'>alert('Area for checking already exists.');</script>";
+            redirect('admin/administration/'.$type_id.'/'.$project_id.'/#btn_unit', 'refresh');
+        } else {
+            $insert_id = $this->Admin_model->add_checking_area($insert_data);
+        }
+        
 
         if($insert_id > 0) {
             echo "<script type='text/javascript'>alert('Areas for checking has been successfully added.');</script>";
@@ -769,20 +787,19 @@ class Admin extends CI_Controller {
 
     }
 
-     public function edit_checking_area() {
-        $type_id = $this->input->post('edit_type_id');
+    public function edit_checking_area_list() {
         $edit_area_id = $this->input->post('edit_area_id');
         $area = $this->input->post('area');
-        $required_check = $this->input->post('required_check');
-        $project_id = $this->input->post('project_id');
 
-        $update = $this->Admin_model->update_checking_area($edit_area_id, $area, $required_check);
+
+        $update = $this->Admin_model->update_checking_area_list($edit_area_id, $area);
 
         if($update) {
             echo "<script type='text/javascript'>alert('Area for checking has been successfully updated.');</script>";
-            redirect('admin/administration/'.$type_id.'/'.$project_id.'#btn_unit', 'refresh');
+            redirect('admin/administration/#btn_list', 'refresh');
         }
     }
+
 
     public function delete_checking_area(){
         $area_id = $this->uri->segment(4);
@@ -986,11 +1003,18 @@ class Admin extends CI_Controller {
     // }
 
     public function add_checking_area_list() {
-
+        $area_description = $this->input->post('area');
         $insert_data = array(
-            'area_description' => $this->input->post('area')
+            'area_description' => $area_description
         );
-        $last_id = $this->Admin_model->add_checking_area_list($insert_data);
+        $checker = $this->Admin_model->get_checking_area_list_by_description($area_description);
+        if($checker) {
+            echo "<script type='text/javascript'>alert('Encoded description is already exist.');</script>";
+            redirect('admin/administration/#btn_list', 'refresh');
+        } else {
+            $last_id = $this->Admin_model->add_checking_area_list($insert_data);
+        }
+       
 
         if (isset($last_id)) {
             echo "<script type='text/javascript'>alert('New Area has been successfully added.');</script>";
@@ -999,6 +1023,7 @@ class Admin extends CI_Controller {
     
      
     }
+
 
     public function get_value_edit_area_list() {
         if($this->input->is_ajax_request()) {
@@ -1011,19 +1036,7 @@ class Admin extends CI_Controller {
         }
     }
 
-    public function edit_checking_area_list() {
-        $edit_area_id = $this->input->post('edit_area_id');
-        $area = $this->input->post('area');
-
-
-        $update = $this->Admin_model->update_checking_area_list($edit_area_id, $area);
-
-        if($update) {
-            echo "<script type='text/javascript'>alert('Area for checking has been successfully updated.');</script>";
-            redirect('admin/administration/#btn_list', 'refresh');
-        }
-    }
-
+   
 
     public function delete_checking_area_list(){
         $area_id = $this->uri->segment(3);
@@ -1036,36 +1049,57 @@ class Admin extends CI_Controller {
 
 
    public function add_position() {
-        $section = $this->input->post('section');
-        $role = $this->input->post('role');
+    $section = $this->input->post('section');
+    $role = $this->input->post('role');
+    $status = $this->input->post('status');
 
-        $section_data = $this->Admin_model->get_section_by_id($section);
-        $role_data = $this->Admin_model->get_role_by_id($role);
+    $other_role = $this->input->post('other_role');
+    $other_section = $this->input->post('other_section');
 
-        $insert_data = array(
-            'position_desc' => $section_data->section_desc .' '. $role_data->role_desc,
-            'section_id' => $section,
-            'role_id' => $role
-        );
-        $last_id = $this->Admin_model->add_position($insert_data);
+    $section_data = $this->Admin_model->get_section_by_id($section);
+    $role_data = $this->Admin_model->get_role_by_id($role);
 
-        if (isset($last_id)) {
-            echo "<script type='text/javascript'>alert('New Position has been successfully added.');</script>";
-            redirect('admin/administration/#btn_list', 'refresh');
-        }
-    
-     
+    $section_desc = $section_data->section_desc;
+    $role_desc =  $role_data->role_desc;
+
+    // if others (section, role) where chosen, insert first
+    if ($other_section) {
+        $section_data = array('section_desc' => $other_section);
+        $section = $this->Admin_model->add_section($section_data);
+        $section_desc = $other_section;
+    } 
+
+    if($other_role) {
+        $role_data = array('role_desc' => $other_role);
+        $role = $this->Admin_model->add_role($role_data);
+        $role_desc = $other_role;
     }
 
+    $position_desc =  $section_desc .' '. $role_desc;
+    $insert_data = array(
+        'position_desc' => $position_desc,
+        'section_id' => $section,
+        'role_id' => $role,
+        'status' => $status
+    );
 
-    public function delete_position(){
-        $position_id = $this->uri->segment(3);
-        $last_id = $this->Admin_model->delete_position($position_id);
-        if($last_id) {
-            echo "<script type='text/javascript'>alert('Selected Position has been successfully deleted.');</script>";
-            redirect('admin/administration/#btn_list', 'refresh');
-        }
-   }
+    $checker = $this->Admin_model->get_positions_by_description($position_desc);
+    if($checker) {
+        echo "<script type='text/javascript'>alert('Position to be added is already exist.');</script>";
+        redirect('admin/administration/#btn_list', 'refresh');
+    } else {
+        $last_id = $this->Admin_model->add_position($insert_data);
+    }
+    
+
+    if (isset($last_id)) {
+        echo "<script type='text/javascript'>alert('New Position has been successfully added.');</script>";
+        redirect('admin/administration/#btn_list', 'refresh');
+    }
+
+ 
+}
+
 
    public function get_value_edit_position() {
         if($this->input->is_ajax_request()) {
@@ -1078,22 +1112,42 @@ class Admin extends CI_Controller {
         }
     }
 
+    public function delete_position(){
+        $position_id = $this->uri->segment(3);
+        // check if with related transaction
+        $checker = $this->Admin_model->get_user_by_position_id($position_id);
+        if($checker) {
+            echo "<script type='text/javascript'>alert('This description has related transaction and cannot be deleted.');</script>";
+            redirect('admin/administration/#btn_list', 'refresh');
+        } else {
+            $last_id = $this->Admin_model->delete_position($position_id);
+        }
+        
+        if($last_id) {
+            echo "<script type='text/javascript'>alert('Selected Position has been successfully deleted.');</script>";
+            redirect('admin/administration/#btn_list', 'refresh');
+        }
+   }
+
+
     public function edit_position() {
         $position_id = $this->input->post('position_id');
         $section = $this->input->post('section');
         $role = $this->input->post('role');
+        $status = $this->input->post('status');
         
         $section_data = $this->Admin_model->get_section_by_id($section);
         $role_data = $this->Admin_model->get_role_by_id($role);
         $position_desc = $section_data->section_desc . ' ' . $role_data->role_desc;
 
-        $update = $this->Admin_model->update_position($position_id, $section, $role, $position_desc);
+        $update = $this->Admin_model->update_position($position_id, $section, $role, $position_desc, $status);
 
         if($update) {
             echo "<script type='text/javascript'>alert('Area for checking has been successfully updated.');</script>";
             redirect('admin/administration/#btn_list', 'refresh');
         }
     }
+
 
     public function get_project_distance() {
 
@@ -1287,7 +1341,6 @@ class Admin extends CI_Controller {
                 //If the the customer has no schedule Ticket will be assign to outbound. But if has schedule 
                 //ticket will be assign to handover
                 if(count($chcktheschedule) == 0){
-                    echo "<script>alert('Has Schecdule');</script>";
                     //$project = $this->input->post('project'); 
                     $o_associates = array();
                     $outbounds = $this->Admin_model->get_all_outbound_associate();
@@ -1310,7 +1363,32 @@ class Admin extends CI_Controller {
                     $insert_id = $this->Admin_model->add_ticket($insert_ticket);  
                    
                     if ($insert_id > 0){
-                       
+                        //Insert ticket status in db after assigning the tickets
+                        $ticket_status_data_insertion = array(
+                            array(
+                                'ticket_number' => $ticket_number,
+                                'status' => 0,
+                                'assign_to' => '',
+                                'user_section' => 'INBOUND_ASSOC',
+                                'activity_status' => 0
+                            ),
+                            array(
+                                'ticket_number' => $ticket_number,
+                                'status' => 0,
+                                'assign_to' => $outbound_assigned,
+                                'user_section' => 'OUTBOUND_ASSOC',
+                                'activity_status' => 0
+                            ),
+                            array(
+                                'ticket_number' => $ticket_number,
+                                'status' => 0,
+                                'assign_to' => '',
+                                'user_section' => 'HANDOVER_ASSOC',
+                                'activity_status' => 0
+                            )
+                        );
+                        $this->db->insert_batch('tbl_ticket_status', $ticket_status_data_insertion);
+
                         //Send Email to assigned ticket
                         $outbond_details = $this->Admin_model->get_user_detail($outbound_assigned , '7');
                         foreach($outbond_details as $outbond_detail){
@@ -1352,7 +1430,31 @@ class Admin extends CI_Controller {
                             $insert_id = $this->Admin_model->add_ticket($insert_ticket); 
 
                             if ($insert_id > 0){
-                               
+                                 //Insert ticket status in db after assigning the tickets
+                                $ticket_status_data_insertion = array(
+                                    array(
+                                        'ticket_number' => $ticket_number,
+                                        'status' => 0,
+                                        'assign_to' => '',
+                                        'user_section' => 'INBOUND_ASSOC',
+                                        'activity_status' => 0
+                                    ),
+                                    array(
+                                        'ticket_number' => $ticket_number,
+                                        'status' => 0,
+                                        'assign_to' => '',
+                                        'user_section' => 'OUTBOUND_ASSOC',
+                                        'activity_status' => 0
+                                    ),
+                                    array(
+                                        'ticket_number' => $ticket_number,
+                                        'status' => 0,
+                                        'assign_to' => $hand_assigned,
+                                        'user_section' => 'HANDOVER_ASSOC',
+                                        'activity_status' => 0
+                                    )
+                                );
+                                $this->db->insert_batch('tbl_ticket_status', $ticket_status_data_insertion);
 
                                 //Send Email to assigned ticket
                                 $handover_details = $this->Admin_model->get_user_detail($hand_assigned , '10');
@@ -1383,7 +1485,7 @@ class Admin extends CI_Controller {
 
             if (!$approved_turn_over == 0){
                 if (!$accepted_oomc == 0){
-                     //Update the qualified turnover fields 
+                     //Update the  
                      $update_qualified_turnover = $this->Admin_model->update_qualified_turnover_date(date("Y/m/d H:i:s") , $customer_number);
                      $update_unit_status = $this->Admin_model->update_status_unit($project , $runitid);
                 }else{
@@ -1404,34 +1506,99 @@ class Admin extends CI_Controller {
             $customer_number = $data->customer_number;
             $project = $data->project;
             $runitid = $data->runitid;
+            $type = $data->type;
             $accepted_qcd = $data->accepted_qcd;
             $accepted_handover = $data->accepted_handover;
             $qualified_turnover = $data->qualified_turnover_date;
             
-            if(!$accepted_qcd == 0){
-                if (!$accepted_handover == 0){
-                    $search_for_tickets = $this->Admin_model->get_ticket_number_by_customer_number($customer_number);
-                    foreach($search_for_tickets as $data){
-                        $ticket_id = $data->id;
-                        $email = $data->email_address;
-                        $encrypt_ticket_id = $this->dec_enc($ticket_id , 'encrypt');
-                        $link = "http://localhost/weserve/default_user/schedule/". $encrypt_ticket_id;
-                        //echo "<script>alert('". $ticket_id ."');</script>";
-                        $this->send_email($email, "WESERVE - For Scheduling link" , $link);
+            if (!empty($accepted_qcd)){
+                if(!empty($accepted_handover)){
+                    $get_customers = $this->Admin_model->get_buyers_by_customer_number($customer_number);
+                    //Check the parking if with unit
+                    if ($type === 'PK'){
+                        foreach($get_customers as $get_customer){
+                            //get the tin of tag as parking
+                            $tin_number = $get_customer->tin;
+                            //Get customer number by tin
+                            $get_customer_by_tins = $this->Admin_model->get_tin_by_customer_number($tin_number);
+                            //Store the return customer number to array
+                            $return_customer_numbers = array();
+                            foreach ($get_customer_by_tins as $get_customer_by_tin) {
+                                $return_customer_numbers[] = $get_customer_by_tin->customer_number;
+                            }
+                            //Loop to each customer number on the array to get the bundled unit
+                            foreach($return_customer_numbers as $return_customer_number){
+                                $get_buyers_transacs = $this->Admin_model->get_buyers_trans($return_customer_number);
+                                foreach($get_buyers_transacs as $get_buyers_transac){
+                                    $unit_type = $get_buyers_transac->type;
+                                    $qualified_un = $get_buyers_transac->qualified_turnover_date;
+                                    if($unit_type == "UN"){
+                                        //If the qualified turn over of parking is greater than the qualified turnover of unit 
+                                        //Not valid of scheduling
+                                        if($qualified_turnover < $qualified_un){
+                                            $search_for_tickets = $this->Admin_model->get_ticket_number_by_customer_number($customer_number);
+                                            foreach($search_for_tickets as $data){
+                                                $ticket_id = $data->id;
+                                                $email = $data->email_address;
+                                                $encrypt_ticket_id = $this->dec_enc($ticket_id , 'encrypt');
+                        
+                                                $link = base_url()."default_user/schedule/". $encrypt_ticket_id;
+                                                //echo "<script>alert('". $ticket_id ."');</script>";
+                                                $this->send_email($email, "WESERVE - For Scheduling link" , $link);
+                        
+                                                //Save the link to the database
+                                                $datas = array(
+                                                    'ticket_number' => $data->ticket_number ,
+                                                    'temp_link' => $link , 
+                                                    'status' => '0' , 
+                                                    'date_created' =>  $date_now =  date("Y/m/d H:i:s")
+                                                );
+                                                $this->Admin_model->save_link_to_db($datas);
+                                            }
+                                        }else{
+                                            //Do nothing
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }else{
+                        //If the unit is not parking sched the other type
+                        //parking is important kasi ano need siya eh wag ka ano.
+                        $search_for_tickets = $this->Admin_model->get_ticket_number_by_customer_number($customer_number);
+                        foreach($search_for_tickets as $data){
+                            $ticket_id = $data->id;
+                            $email = $data->email_address;
+                            $encrypt_ticket_id = $this->dec_enc($ticket_id , 'encrypt');
+
+                            $link = base_url()."default_user/schedule/". $encrypt_ticket_id;
+                            //echo "<script>alert('". $ticket_id ."');</script>";
+                            $this->send_email($email, "WESERVE - For Scheduling link" , $link);
+
+                            //Save the link to the database
+                            $data = array(
+                                'ticket_number' => $data->ticket_number ,
+                                'temp_link' => $link , 
+                                'status' => '0' , 
+                                'date_created' =>  $date_now =  date("Y/m/d H:i:s")
+                            );
+                            $this->Admin_model->save_link_to_db($data);
+                        }
                     }
+                }else{
+                    //Do Nothing
                 }
             }else{
-                //Do Nothing
+                    //Do Nothing
             }
         }
         
     }
-   
-    
+
+
       //Emil Added
      //For the Scheduling
      public function onclickChange(){
-
         $sched = $this->input->get("dt");
         $date = strtotime($this->input->get('dt'));
         $distination = $this->input->get("project");
@@ -1444,10 +1611,12 @@ class Admin extends CI_Controller {
         $availability = array();
         $sched_chcker = array();
 
-        $new_date = date("Y/m/d H:i:s", $date);
+        $new_date = date("Y-m-d H:i:s", $date);
 
-        $dt = new DateTime($new_date);
-        $new_dt = $dt->setTime(intval($time), 00);
+        /* $dt = new DateTime($new_date);
+        $new_dt = $dt->setTime(intval($time), 00); */
+
+        $new_dt = date("Y-m-d", $date) . ' ' . date("H:i" , strtotime($this->input->get("time")));
 
         $tickets = $this->Admin_model->get_all_tickets();
         $ticket_number = $project .'-'. date("Y"). '-' .sprintf("%'.05d\n", count($tickets)+1);
@@ -1460,24 +1629,27 @@ class Admin extends CI_Controller {
             $hand_assoc_users[] = $hands->user_id;
         }
 
-        $datas = $this->Admin_model->get_schedules_per_exact_datetime($new_dt->format('Y-m-d H:i:s'));
+        $datas = $this->Admin_model->get_schedules_per_exact_datetime($new_dt);
         $sequence = count($datas) + 1;
         
         //select ranhand_assoc_users_randdom assoc
         $assigned_to = array_rand($hand_assoc_users);
         $hand_over_assign = $hand_assoc_users[$assigned_to];
         
-        $datas = $this->Admin_model->get_schedules_per_exact_datetime($new_dt->format('Y-m-d H:i:s'));
+        $datas = $this->Admin_model->get_schedules_per_exact_datetime($new_dt);
         $sequence = count($datas) + 1;
 
+        //Plus and minus two hour of the selected time of user
+        $base_time_advance = date("Y-m-d", $date) . ' ' . date("H:i" , strtotime('+2 hour' , strtotime($this->input->get("time"))));
+        $base_time_delay =  date("Y-m-d", $date) . ' ' . date("H:i" , strtotime('-2 hour' , strtotime($this->input->get("time"))));
         $assigned_to = array_rand($hand_assoc_users);
         $hand_over_assign = $hand_assoc_users[$assigned_to];
-        $hand_assoc_sched = $this->Admin_model->get_sched_of_hand_over($new_dt->format('Y-m-d') , $hand_over_assign);
-        
-        $datas = $this->Admin_model->get_schedules_per_exact_datetime($new_dt->format('Y-m-d H:i:s'));
+        $hand_assoc_sched = $this->Admin_model->get_sched_of_hand_over_between('2020-01-08 07:30' , '2020-01-08 11:31:00', '16');
+       
+        $datas = $this->Admin_model->get_schedules_per_exact_datetime($new_dt);
         $sequence = count($datas) + 1;
         $availability["assigned_to"] = $hand_over_assign;
-
+        $distance_time = $this->get_user_preference($base_time_delay , $base_time_advance , $hand_over_assign , $distination);
        //If has a schedule
        if (!empty($hand_assoc_sched)){
         foreach($hand_assoc_sched as $hand_assoc_scheds){
@@ -1488,140 +1660,32 @@ class Admin extends CI_Controller {
             $project_code = strtok($ticket_number, '-');
             
             
-            $sched_date_where_clausehed = $new_dt->format('Y-m-d') . ' ' . '09:00:00';
-            
-            if (in_array($new_dt->format('Y-m-d H:i:s') , $sched_chcker)){
+            if (in_array($new_dt , $sched_chcker)){
                 $availability['in_array_sched'] = $sched_chcker;
                 $availability['reserved'] = 'NOT AVAILABLE'; $availability['avail']= 'false';
             }else{
-                //For checking the time 24 Hour format
-                $sched_date_where_clause_sched_8 = $new_dt->format('Y-m-d') . ' ' . '08:00:00';
-                $sched_date_where_clause_sched_9 = $new_dt->format('Y-m-d') . ' ' . '09:00:00';
-                $sched_date_where_clause_sched_10 = $new_dt->format('Y-m-d') . ' ' . '10:00:00';
-                $sched_date_where_clause_sched_11 = $new_dt->format('Y-m-d') . ' ' . '11:00:00';
-                $sched_date_where_clause_sched_12 = $new_dt->format('Y-m-d') . ' ' . '12:00:00';
-                $sched_date_where_clause_sched_13 = $new_dt->format('Y-m-d') . ' ' . '13:00:00';
-                $sched_date_where_clause_sched_14 = $new_dt->format('Y-m-d') . ' ' . '14:00:00';
-                $sched_date_where_clause_sched_15 = $new_dt->format('Y-m-d') . ' ' . '15:00:00';
-                $sched_date_where_clause_sched_16 = $new_dt->format('Y-m-d') . ' ' . '16:00:00';
-                $sched_date_where_clause_sched_17 = $new_dt->format('Y-m-d') . ' ' . '17:00:00';
-              
-                //Checking the availability base on the distance and time selected
-                if ($time == '8'){
-                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_8 , $hand_over_assign , $distination);
-                    if($distance_calculated > 10){
-                        $availability['avail'] = 'false';
-                        $availability['reserved'] = 'NOT AVAILABLE';
-                        $availability['More than 10KM in selected time is 9AM'] = $new_dt;
-                    }else{
-                        $availability['avail']= 'true';
-                        $availability['reserved'] = '';
-                        $availability['Less than 10KM in selected time is 9AM -> time selected is 9'] = $distance_calculated;
-                    }
-                }else if ($time == '9' ){
-                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_8 , $hand_over_assign , $distination);
-                    if($distance_calculated > 10){
-                        $availability['avail'] = 'false';
-                        $availability['reserved'] = 'NOT AVAILABLE';
-                        $availability['More than 10KM in selected time is 9AM'] = $new_dt;
-                    }else{
-                        $availability['avail']= 'true';
-                        $availability['reserved'] = '';
-                        $availability['Less than 10KM in selected time is 9AM -> time selected is 9'] = $distance_calculated;
-                    }
-                }else if ($time == '10'){
-                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_9 , $hand_over_assign , $distination);
-                    if($distance_calculated > 10){
-                        $availability['distance'] = $distance_calculated;
-                        $availability['avail'] = 'false';
-                        $availability['reserved'] = 'NOT AVAILABLE';
-                        $availability['More than 10KM in selected time is 10AM'] = '';
-                    }else{
-                        $availability['distance'] = $distance_calculated;
-                        $availability['avail'] = 'true';
-                        $availability['reserved'] = '';
-                        $availability['Less than 10KM in selected time is 10AM'] = '';
-                    }
-                }else if ($time == '11'){
-                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_10 , $hand_over_assign , $distination);
-                    if($distance_calculated > 10){
-                        $availability['avail'] = 'false';
-                        $availability['More than 10KM(Schedule is 10AM) in selected time is 11AM'] = '';   
-                    }else{
-                        $availability['avail'] = 'true';
-                        $availability['reserved'] = '';
-                    }
-                }else if ($time == '12'){
-                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_11 , $hand_over_assign , $distination);
-                    
-                    if ($distance_calculated > 10){
-                        $availability['avail'] = 'false';
-                        $availability['More than 10KM(Schedule is 11PM) in selected time is 12PM'] = ''; 
-                    }else{
-                        $availability['avail'] = 'true';
-                        $availability['reserved'] = '';
-                    }
-                }else if ($time == '13'){
-                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_12 , $hand_over_assign , $distination);
-                   
-                    if ($distance_calculated > 10){
-                        $availability['avail'] = 'false';
-                        $availability['More than 10KM(Schedule is 12PM) in selected time is 13PM'] = ''; 
-                    }else{
-                        $availability['avail'] = 'true';
-                        $availability['reserved'] = '';
-                    }
-                }else if ($time == '14'){
-                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_13 , $hand_over_assign , $distination);
-                   
-                    if ($distance_calculated > 10){
-                        $availability['avail'] = 'false';
-                        $availability['More than 10KM(Schedule is 13PM) in selected time is 14PM'] = ''; 
-                    }else{
-                        $availability['avail'] = 'true';
-                        $availability['reserved'] = '';
-                    }
-                }else if ($time == '15'){
-                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_14 , $hand_over_assign , $distination);
-                   
-                    if ($distance_calculated > 10){
-                        $availability['avail'] = 'false';
-                        $availability['More than 10KM(Schedule is 14PM) in selected time is 15PM'] = ''; 
-                    }else{
-                        $availability['avail'] = 'true';
-                        $availability['reserved'] = '';
-                    }
-                }else if ($time == '16'){
-                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_15 , $hand_over_assign , $distination);
-                   
-                    if ($distance_calculated > 10){
-                        $availability['avail'] = 'false';
-                        $availability['More than 10KM(Schedule is 15PM) in selected time is 16PM'] = ''; 
-                    }else{
-                        $availability['avail'] = 'true';
-                        $availability['reserved'] = '';
-                    }
-                }else if ($time == '17'){
-                    $distance_calculated = $this->get_user_preference($sched_date_where_clause_sched_16 , $hand_over_assign , $distination);
-                   
-                    if ($distance_calculated > 10){
-                        $availability['avail'] = 'false';
-                        $availability['More than 10KM(Schedule is 16PM) in selected time is 17PM'] = ''; 
-                    }else{
-                        $availability['avail'] = 'true';
-                        $availability['reserved'] = '';
-                    }
+                $bool_distance = $this->get_user_preference($base_time_delay , $base_time_advance , $hand_over_assign , $distination);
+                //If the $bool_distance is true means the selected date time is available
+                if ($bool_distance == true){
+                    $availability['avail'] = 'true';
+                    $availability['reserved'] = 'AVAILABLE';
+                    $availability['desc'] = 'all of the value return true';
+                }else{
+                    $availability['avail'] = 'false';
+                    $availability['reserved'] = 'NOT AVAILABLE';
+                    $availability['desc'] = 'One of the value return false';
                 }
             }
         }
         }else{
-            $availability['reserved'] = ''; $availability['avail']= 'true';
+            $availability['desc'] = 'No sched free to schedule'; 
+            $availability['avail']= 'true';
+            $availability['reserved'] = 'AVAILABLE';
         }
-
         $availability['project'] = $project;
         $availability['sched'] = $sched;
-        $availability['time'] = $time;
-        $availability['data'] = $new_dt->format('Y-m-d H:i:s');
+        $availability['time'] = $this->input->get("time");
+        $availability['data'] = $hand_assoc_sched;
         echo json_encode($availability);
      }
 
@@ -1662,33 +1726,43 @@ class Admin extends CI_Controller {
         }
     }
     
-    public function get_user_preference($ched , $assigned_to , $project_distination){
+    public function get_user_preference($date_delay , $date_advance , $assigned_to , $project_distination){
         $distance = '0';
-        $schedule = $this->Admin_model->get_sched_of_hand_over($ched , $assigned_to);
-        if ($schedule !== '0'){
-            foreach($schedule as $data){
-                $ticket_number = $data->ticket_number;
-                $project_code = strtok($ticket_number, '-');
-                //Get the Project id of the hand over assoc sched on the user selected date.
+        $schedules = $this->Admin_model->get_sched_of_hand_over_between($date_delay , $date_advance , $assigned_to);
+        if (!empty($schedules)){
+            foreach($schedules as $schedule){
+                $project_code = strtok($schedule->ticket_number, '-') . '-' . strtok('-');
                 $project_id_of_assoc_sched_assign = $this->Admin_model->get_project_id_assoc($project_code);
                 $assoc_distination = $this->Admin_model->get_project_id_assoc($project_distination);
+                $sched = $schedule->schedule;
                 foreach($project_id_of_assoc_sched_assign as $data1){
                     $id = $data1->id;
                     foreach($assoc_distination as $data2){
-                        $id2 = $data2->id;
-                        $distance_project = $this->Admin_model->get_distance_project($id , $id2);   
-                        foreach($distance_project as $data_dis){
+                        if (!empty($data2->id)){
+                          $id2 = $data2->id;
+                          $distance_project = $this->Admin_model->get_distance_project($id , $id2);   
+                          foreach($distance_project as $data_dis){
                             $distance = $data_dis->distance;
-                            return $distance;
+                            //Check the each value of distance if the value is more than 10 km 
+                            //return fale and break teh loop
+                            if ($distance > 10){
+                                exit();
+                                return false;
+                            }else{
+                                return true;
+                            }
+                          }
+                        }else{
+                            return true;
                         }
                     }
                 }
             }
         }else{
-            return $distance;
+            return true;
         }
-        
-    }   
+        return true;
+    }     
 
     public function add_schedule_available(){
         $user_id = $this->input->post('logged_user');
@@ -1701,10 +1775,12 @@ class Admin extends CI_Controller {
         $sequence = 1;
         $new_date = date("Y/m/d H:i:s", $date);
         
-        $dt = new DateTime($new_date);
-        $new_dt = $dt->setTime(intval($time), 00);
+        /* $dt = new DateTime($new_date);
+        $new_dt = $dt->setTime(intval($time), 00); */
 
-        $datas = $this->Admin_model->get_schedules_per_exact_datetime($new_dt->format('Y-m-d H:i:s'));
+        $new_dt = date("Y-m-d", $date) . ' ' . date("H:i" , strtotime($this->input->get("time")));
+
+        $datas = $this->Admin_model->get_schedules_per_exact_datetime($new_dt);
         $sequence = count($datas) + 1;
 
         $tickets = $this->Admin_model->get_all_tickets();
@@ -1713,16 +1789,44 @@ class Admin extends CI_Controller {
         $insert_data = array(
             'customer_number' => $customer_number,
             'ticket_number' => $ticket_number,
-            'schedule' => $new_dt->format('Y-m-d H:i:s'),
+            'schedule' => $new_dt,
             'sequence' => $sequence,
             'assigned_to' => $assign_to,
             'status' => 0
         );
 
         $insert_id = $this->Admin_model->add_turnover_schedule($insert_data);
+        
+        //Insert ticket status in db after assigning the tickets
+        $ticket_status_data_insertion = array(
+        array(
+                'ticket_number' => $ticket_number,
+                'status' => 0,
+                'assign_to' => '',
+                'user_section' => 'INBOUND_ASSOC',
+                'activity_status' => 0
+            ),
+            array(
+                'ticket_number' => $ticket_number,
+                'status' => 0,
+                'assign_to' => '',
+                'user_section' => 'OUTBOUND_ASSOC',
+                'activity_status' => 0
+            ),
+            array(
+                'ticket_number' => $ticket_number,
+                'status' => 0,
+                'assign_to' => $outbound_assigned,
+                'user_section' => 'HANDOVER_ASSOC',
+                'activity_status' => 0
+            )
+        );
+        $this->db->insert_batch('tbl_ticket_status', $ticket_status_data_insertion);
+
+
         // check if there's unit/parking in certain project qualified for turnover
         $detail = $this->Admin_model->get_customer_by_custnum($customer_number);
-        $check_other_units = $this->Admin_model->get_customer_turnover_date_by_tin($detail->tin, $new_dt->format('Y-m-d H:i:s'), $detail->project, $customer_number);
+        $check_other_units = $this->Admin_model->get_customer_turnover_date_by_tin($detail->tin, $new_dt, $detail->project, $customer_number);
 
         if($check_other_units) {
             foreach ($check_other_units as $check) {
@@ -1731,15 +1835,53 @@ class Admin extends CI_Controller {
                  $insert_data = array(
                     'customer_number' => $check->customer_number,
                     'ticket_number' => $ticket_number,
-                    'schedule' => $new_dt->format('Y-m-d H:i:s'),
+                    'schedule' => $new_dt,
                     'sequence' => $sequence,
                     'assigned_to' => $assign_to,
                     'status' => 0
                 );
                 $insert_id = $this->Admin_model->add_turnover_schedule($insert_data);
+
+                    //Insert ticket status in db after assigning the tickets
+                    $ticket_status_data_insertion = array(
+                        array(
+                                'ticket_number' => $ticket_number,
+                                'status' => 0,
+                                'assign_to' => '',
+                                'user_section' => 'INBOUND_ASSOC',
+                                'activity_status' => 0
+                            ),
+                            array(
+                                'ticket_number' => $ticket_number,
+                                'status' => 0,
+                                'assign_to' => '',
+                                'user_section' => 'OUTBOUND_ASSOC',
+                                'activity_status' => 0
+                            ),
+                            array(
+                                'ticket_number' => $ticket_number,
+                                'status' => 0,
+                                'assign_to' => $assign_to,
+                                'user_section' => 'HANDOVER_ASSOC',
+                                'activity_status' => 0
+                            )
+                        );
+                        $this->db->insert_batch('tbl_ticket_status', $ticket_status_data_insertion);
+                
             }
         }
 
+        $tix = $this->Admin_model->get_ticket_by_ticket_number($ticket_id);
+        $description = "Unit Owner already confirmed the turnover schedule.";
+        foreach($tix as $t){
+            $act_data = array(
+                'ticket_id' => $t->ticket_id,
+                'description' => $description,
+                'created_by' => user('id'),
+                'status' => 0
+            );
+            $this->Admin_model->add_activity_log($act_data);
+        }
        if($insert_id > 0) {
             // create ticket - random assigning to outbound associate
           $o_associates = array();
@@ -1821,7 +1963,7 @@ class Admin extends CI_Controller {
             $chcktheschedule = $this->Admin_model->get_schedule_for_turnover($customer_number);
             $customer_detail = $this->Admin_model->get_buyers_by_customer_number($customer_number);
 
-             //Check if the costumer has no schedule if has no schedule for beyond working days
+             //Check if the costumer has no schedule if has no schedule for beyond 15 working days
              //Email the Owner that he/she has no schedule and assign ticket to outbound and email the
              //The outbound that ticket has been assigned to him.
              //echo '<script>alert(alert(aass);</script>';
@@ -1866,6 +2008,32 @@ class Admin extends CI_Controller {
                         $insert_id = $this->Admin_model->add_ticket($insert_ticket);  
                     
                         if ($insert_id > 0){
+                               //Insert ticket status in db after assigning the tickets
+                              $ticket_status_data_insertion = array(
+                            array(
+                                    'ticket_number' => $ticket_number,
+                                    'status' => 0,
+                                    'assign_to' => '',
+                                    'user_section' => 'INBOUND_ASSOC',
+                                    'activity_status' => 0
+                                ),
+                                array(
+                                    'ticket_number' => $ticket_number,
+                                    'status' => 0,
+                                    'assign_to' => $outbound_assigned,
+                                    'user_section' => 'OUTBOUND_ASSOC',
+                                    'activity_status' => 0
+                                ),
+                                array(
+                                    'ticket_number' => $ticket_number,
+                                    'status' => 0,
+                                    'assign_to' => '',
+                                    'user_section' => 'HANDOVER_ASSOC',
+                                    'activity_status' => 0
+                                )
+                            );
+                            $this->db->insert_batch('tbl_ticket_status', $ticket_status_data_insertion);
+                    
                             //Send Email to assigned ticket
                             $outbond_details = $this->Admin_model->get_user_detail($outbound_assigned , '7');
                             foreach($outbond_details as $outbond_detail){
@@ -1919,16 +2087,34 @@ class Admin extends CI_Controller {
             $chcktheschedule = $this->Admin_model->get_schedule_for_turnover($customer_number);
             $customer_detail = $this->Admin_model->get_buyers_by_customer_number($customer_number);
 
-             //Check if the costumer has no schedule if has no schedule for beyond working days
- 
- 
+             //Check if the costumer has no schedule if has no schedule for 30 working days
+             
+
              //Email the Owner that he/she has no schedule and assign ticket to outbound and email the
              //The outbound that ticket has been assigned to him.
-             //echo '<script>alert(alert(aass);</script>';
-
              foreach($working_days as $days){
                  $d = $days->days; 
-                 if ($d >= 44){
+                 if($d == 31){
+                    if(count($chcktheschedule) == 0){
+                        //For Unit Owner sending email
+                        foreach ($customer_detail as $detail) {
+                            $email_address = $detail->email_address;
+
+                            $message = "NO SCHEDULE MORE THAN 30 DAYS DEEMED LEGALLY ACCEPTED.....";
+
+                            //$send_email = $this->send_email($email_address, 'Notification about Schedule', $message);
+                            if($send_email == true) { // && $return_sms == true
+                                echo "<script type='text/javascript'>alert('Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.');</script>";
+                            } else {
+                                echo "<script type='text/javascript'>alert('Failure to send the email notification.');</script>";
+                            }
+                        }
+                        //Update status of unit to Deemed legally accepted
+                        $updatestatus = $this->Admin_model->update_units_status('15' , $project , $runitid);
+                    }else{
+                        //Do Nothing
+                    }
+                 }else if($d >= 44){
                     if(count($chcktheschedule) == 0){
 
                         //For Unit Owner sending email
@@ -1944,17 +2130,12 @@ class Admin extends CI_Controller {
                                 echo "<script type='text/javascript'>alert('Failure to send the email notification.');</script>";
                             }
                         }
-
                         //Update status of unit to Deemed legally accepted
                         $updatestatus = $this->Admin_model->update_units_status('15' , $project , $runitid);
-                        
                     }else{
                         //Do Nothing
                     }
-                }else{
-                    //Do Nothing
-                    echo '<script>alert(sdsdsds);</script>';
-                } 
+                }
             }
         }
     }
@@ -1986,7 +2167,7 @@ class Admin extends CI_Controller {
     }   
 
     //Emil Added for weserve job 12/20/19
-    //Acceptance of unit fro QCD
+    //Acceptance of unit from QCD
     public function job_acceptance_of_units_from_qcd(){
         date_default_timezone_set('Asia/Manila');
         $date_now = date("Y-m-d h:i:s");
@@ -1997,27 +2178,41 @@ class Admin extends CI_Controller {
             $date = $accept->accepted;
             //Check if the field of accepted_qcd has valid or not empty
             if(!empty($date)){
-                $timediff = $this->Admin_model->get_time_diff($date , $date_now);
+                $timediff = $this->Admin_model->get_time_diff($date_now , $date);
+                //var_dump($timediff);exit();
                 foreach($timediff as $data){
                     $timediff = $data->timediff;
                     if ($timediff >= '24:00:00'){
-                        //echo "<script>alert('".$timediff."');</script>";
                         $get_nearest_sched = $this->Admin_model->get_nearest_sched($date_now , $accept->customer_number);
                         foreach($get_nearest_sched as $nereast){
                             $email_hand_assign_nearest = $this->Admin_model->get_user_by_ids($nereast->assigned_to);
                             foreach($email_hand_assign_nearest as $datanearest){
                                 $message = "HI! schcedule accepted UNIT by QCD......";
                                 $send_email = $this->send_email($datanearest->email_address, 'Notification about Schedule Accepted by QCD', $message);
-                                if($send_email == true) { // && $return_sms == true
+                                //Create ticket for hand_over 
+                                    //BRD - > 6.6.3 Acceptance of Unit from QCD
+                                    $ticket_creation = $this->Admin_model->create_ticket($accept->project);
+                                    var_dump($ticket_creation);exit();
+                                    $ticket_date = array(
+                                        "ticket_number" => $ticket_creation->ticket_number,
+                                        "customer_number" => $accept->customer_number,
+                                        "created_by" => 0,
+                                        "category" => "Acceptanced QCD",
+                                        "subject" => "Acceptance of Unit from QCD to Handover",
+                                        "assigned_to" => $nereast->assigned_to,
+                                        "date_assigned" => date("Y/m/d H:i s")
+                                    );
+                                    $insert_ticket_id = $this->Admin_model->add_ticket($ticket_date);
+                                 
+                                if($send_email == true){ 
                                     echo "<script type='text/javascript'>alert('Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.');</script>";
                                 }else{
-                                    echo "<script type='text/javascript'>alert('".$datanearest->email_address."');</script>";
                                     echo "<script type='text/javascript'>alert('Failure to send the email notification.');</script>";
                                 }
                             }
                         }
                     }else{
-                        echo "<script>alert('Less than 24 hour');</script>";
+                        //echo "<script>alert('Less than 24 hour');</script>";
                     }
                 }
                
@@ -2057,6 +2252,191 @@ class Admin extends CI_Controller {
             }
         }
     }
+
+    //Emil Added for weserve job buyers_transac
+    //To fill the table tbl_buyers_trasanc
+    public function job_buyers_transanc(){
+        ini_set('max_execution_time', 0);
+        $date_now = date("Y-m-d");
+        $filename = "units_transaction_with_customer_number_" . $date_now . ".json";
+        //$pagination = 1;
+        $params = 'Units';
+
+        //Loop over the pagination to get all units 
+        for($pagination = 1; $pagination < 1000; $pagination++){
+            $all_units = $this->weserve_sap->all($params ,[
+                'type' => 'paginate',
+                'index'=> $pagination,
+                'limit' => 50
+            ]);
+            $json_units = json_decode($all_units , true);  
+           
+            //Exit the loop when the json response is 0;
+            if (count($json_units) === 0){
+                exit();
+            }
+
+            file_put_contents($filename , print_r($all_units , true));
+            
+            $url = 'units_transaction_with_customer_number_2020-01-06.json'; // path to your JSON file
+            $data = file_get_contents($filename); // put the contents of the file into a variable
+            $json_data = json_decode($data, true);
+            
+            for($i =0; $i < count($json_data); $i++){
+                $bukrs = $json_data[$i]['BUKRS'];
+                $swenr = $json_data[$i]['SWENR'];
+                $smenr = $json_data[$i]['SMENR'];
+                $swenr_exploded = explode("-",$swenr);
+                //Get the unit Sales Orders
+                $params_spec_units = 'Companies/' . $bukrs . '/Towers/' . $swenr . '/Units/' . $smenr . '/SalesOrders?active=true';
+                //Get all sales order by the company code , tower and unitid
+                $get_specific_unit = $this->weserve_sap->all($params_spec_units);
+                $json_spec_unit = json_decode($get_specific_unit , true);
+                //$spec_length = count($json_spec_unit);
+                $data = array();
+                for ($s = 0; $s < count($json_spec_unit); $s++){
+                    if (!empty(count($json_spec_unit))){
+                        $sold_to = $json_spec_unit[$s]['SOLD_TO'];
+                        //Check for the duplicated data
+                        //$chck_dup = $this->Admin_model->get_duplicate_transac();
+
+                        //if(!empty($chck_dup)){
+                            
+                        //}else{
+                            $data[] = array(
+                                'customer_number' => $sold_to,
+                                'project' => $swenr_exploded['0'],
+                                'tower' => $swenr_exploded['1'],
+                                'runitid' => $smenr,
+                                'type' => $json_data[$i]['UNIT_TYPE']['ZZSALES_UNIT_TYPE']['UNIT_TYPE_CODE'],
+                                'accepted_qcd' =>  $json_data[$i]['TURNOVER_DATE']['QCD_TO_CEG'],
+                                'accepted_handover' =>  '',
+                                'qualified_turnover_date' =>  $json_data[$i]['TURNOVER_DATE']['TURN_OVER_DATE'],
+                                'accepted_oomc' =>  $json_data[$i]['TURNOVER_DATE']['OOMCACCEPT_DATE'],
+                                'approved_turnover' =>  '',
+                                'occ_per_date' =>  $json_data[$i]['TURNOVER_DATE']['OCC_PER_DATE'],
+                                'schedule_date' =>  '',
+                                'tagged_no_show' => $json_data[$i]['TURNOVER_DATE']['TAG_NOSHOW'],
+                                'transaction_date' =>  '',
+                                'status' => 0
+                            );
+                            //Insert to db with batch inserting query.
+                            $this->db->insert_batch('tbl_buyers_transaction' , $data);
+                        //}
+                    }else{
+                        //Do Nothing
+                    }
+                }
+            } 
+        }
+    }
+
+    //For Sending of Email for unit owner for schedule confirmation (After scheduling)
+    public function send_email_for_confirmation(){
+        $customer_number = $this->input->post('customer_number');
+        $encrypt_customer_number = $this->dec_enc($customer_number,'encrypt');
+        $get_customers = $this->Admin_model->get_customer_by_custnum($customer_number);
+
+        foreach($get_customers as $get_customer){
+            $get_customer_email = $get_customer->email_address;
+            $message = "Here's the link to confirm you schedule...";
+            $link = base_url()."default_user/schedule_confirmation/". $encrypt_customer_number;
+            $send_email = $this->send_email($get_customer_email, 'Link for schedule confirmation', $message . ' ' . $link );
+            if($send_email == true) { // && $return_sms == true
+                echo "<script type='text/javascript'>alert('Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.');</script>";
+            } else {
+                echo "<script type='text/javascript'>alert('Failure to send the email notification.');</script>";
+            }
+        }
+    }
+
+    //For Sending email with confirmation of schedule
+    public function job_24hrs_no_sched_confirmation(){
+        date_default_timezone_set('Asia/Manila');
+        $date_now = date("Y-m-d h:i:s");
+        $exceeds = $this->Admin_model->get_all_sched_24hrs_no_sched();
+        foreach($exceeds as $exceed){
+            $time_exceed = $exceed->date_created;
+            $customer_number = $exceed->customer_number;
+            $get_customers = $this->Admin_model->get_customer_by_custnum($customer_number);
+            $timediff = $this->Admin_model->get_time_diff($date , $time_exceed);
+            if ($timediff >= '24:00:00'){
+                foreach($get_customers as $get_customer){
+                    $email_address = $get_customer->email_address;
+                    if(!empty($email_address)){
+                        $message = "HI! schcedule not confirmed within 24hrs...";
+                        $send_email = $this->send_email($email_address, 'Sched exceed', $message);
+                        if($send_email == true) { // && $return_sms == true
+                            echo "<script type='text/javascript'>alert('Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.');</script>";
+                            $this->Admin_model->update_used_link($customer_number , $exceed->ticket_number);
+                             //For Outbound tickets
+                                $o_associates = array();
+                                $outbounds = $this->Admin_model->get_all_outbound_associate();
+                                    foreach ($outbounds as $outbound) {
+                                        $o_associates[] = $outbound->user_id;
+                                    }
+                                $outbound_rand = array_rand($o_associates);
+                                $outbound_assigned = $o_associates[$outbound_rand];
+                                $insert_ticket = array(
+                                    'ticket_number' => $exceed->ticket_number,
+                                    'customer_number' => $customer_number,
+                                    'created_by' => '0',
+                                    'category' => 'Turnover',
+                                    'subject' => 'For Callout did not confirm his/her schedule within 24 hrs (System Generated)',
+                                    'assigned_to' => $outbound_assigned,
+                                    'date_assigned' => date("Y/m/d H:i s")
+                                    );
+
+                                $insert_id = $this->Admin_model->add_ticket($insert_ticket);  
+                            
+                                if ($insert_id > 0){
+                                       //Insert ticket status in db after assigning the tickets
+                                        $ticket_status_data_insertion = array(
+                                            array(
+                                                    'ticket_number' => $exceed->ticket_number,
+                                                    'status' => 0,
+                                                    'assign_to' => '',
+                                                    'user_section' => 'INBOUND_ASSOC',
+                                                    'activity_status' => 0
+                                                ),
+                                                array(
+                                                    'ticket_number' => $exceed->ticket_number,
+                                                    'status' => 0,
+                                                    'assign_to' => $outbound_assigned,
+                                                    'user_section' => 'OUTBOUND_ASSOC',
+                                                    'activity_status' => 0
+                                                ),
+                                                array(
+                                                    'ticket_number' => $exceed->ticket_number,
+                                                    'status' => 0,
+                                                    'assign_to' => '',
+                                                    'user_section' => 'HANDOVER_ASSOC',
+                                                    'activity_status' => 0
+                                                )
+                                            );
+                                            $this->db->insert_batch('tbl_ticket_status', $ticket_status_data_insertion);
+                                    
+                                    //Send Email to assigned ticket
+                                    $outbond_details = $this->Admin_model->get_user_detail($outbound_assigned , '7');
+                                    foreach($outbond_details as $outbond_detail){
+                                        $email_address_outbond = $outbond_detail->email_address;
+                                        $message = "Ticket was successfully assigned to you...";
+                                        $send_email = $this->send_email($email_address_outbond, 'TICKET ASSIGNED', $message);
+                                        if($send_email == true) { // && $return_sms == true
+                                            echo "<script type='text/javascript'>alert('Email notification will be sent to Unit Owner. Selected schedule will be temporarily blocked for 24 hours and will be fully blocked once received confirmation from Unit Owner by replying YES to SMS and email message or clicking the link provided or providing the OTP to Inbound Associate.');</script>";
+                                        } else {
+                                            echo "<script type='text/javascript'>alert('Failure to send the email notification.');</script>";
+                                        }
+                                    }
+                                }
+                            }
+                        }else{
+                            echo "<script type='text/javascript'>alert('Failure to send the email notification.');</script>";
+                        }
+                    }   
+                }
+            }
+        }
 }
 
 

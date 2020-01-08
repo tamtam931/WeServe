@@ -1,8 +1,3 @@
-<!--
-	Updated: from weserve_merge
-	date: 12-27-19
-	Author: Ben Zarmaynine E. Obra
--->
 <div id="temporary_parking_div" class="row" style="padding: 10px;  font-family: verdana; font-size: 12px;">
 	
 		<div class="col-md-12"><b>TEMPORARY PARKING SLOT ALLOCATION</b></div>
