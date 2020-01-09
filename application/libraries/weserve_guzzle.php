@@ -103,7 +103,16 @@ class weserve_guzzle {
 
 				} else {
 
-					return false;
+					$exceptionResult = $e->getResponse();
+
+					$statusCode = $exceptionResult->getStatusCode();
+
+					$returnStatus = $this->statusCode($statusCode);
+
+					$validation['status'] = $statusCode;
+					$validation['phrase'] = $exceptionResult->getReasonPhrase();				
+
+					return $validation;
 				}
 
 			}
