@@ -17,17 +17,19 @@
 				</thead>
 				<tbody>
 					<?php
-						foreach ($list as $data) {
-							?>
-								<tr>
-									<td><?= $data['customer_number'] ?></td>
-									<td><?= $data['customer_name'] ?></td>
-									<td><?= ($data['status'] ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">in-Active</span>') ?></td>									
-									<td><?= date("F d, Y",strtotime($data['created_at'])) ?></td>
-									<td><?= ($data['updated_at'] == 0 ? 'Data not updated' : 'Updated as of '.date("F d, Y",strtotime($data['updated_at']))) ?></td>
-									<td class="text-center"><a href="#!"><button class="btn btn-circle btn-sm btn-outline-dark"><span class="fa fa-search"></span></button></a></td>									
-								</tr>
-							<?php
+						if ($list) {
+							foreach ($list as $data) {
+								?>
+									<tr>
+										<td><?= $data['customer_number'] ?></td>
+										<td><?= $data['customer_name'] ?></td>
+										<td><?= ($data['status'] ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">in-Active</span>') ?></td>									
+										<td><?= date("F d, Y",strtotime($data['created_at'])) ?></td>
+										<td><?= ($data['updated_at'] == 0 ? 'Data not updated' : 'Updated as of '.date("F d, Y",strtotime($data['updated_at']))) ?></td>
+										<td class="text-center"><a href="#!"><button class="btn btn-circle btn-sm btn-outline-dark"><span class="fa fa-search"></span></button></a></td>									
+									</tr>
+								<?php
+							}							
 						}
 					?>
 				</tbody>

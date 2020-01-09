@@ -16,12 +16,12 @@
 				</thead>
 				<tbody>
 					<?php
-						/*if ($list) {
+						if ($list) {
 							
 							foreach ($list as $unit) {
 								?>
 									<tr>
-										<td><?= ($unit['unit_number'] ? $unit['unit_number'] : $unit['parking_number']) ?></td>
+										<td><?= $unit['unit_number'] ?></td>
 										<td><?= $unit['unit_desc'] ?></td>
 										<td><?= $unit['unit_type'] ?></td>
 										<td><?= $unit['unit_area'] ?></td>
@@ -30,7 +30,7 @@
 								<?php
 							}
 													
-						}*/
+						}
 					?>
 				</tbody>
 			</table>			

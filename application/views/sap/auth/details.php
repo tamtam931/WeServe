@@ -28,8 +28,8 @@
 	<div class="messagebox alert alert-success text-center" style="display: none"></div>
 	<center><a href="<?= base_url('sap/auth/create') ?>"><button class="check_auth btn btn-warning btn-sm">Check Authentcation</button></a></center>
 	<div class="form-group">
-		<?= form_label('Cookie Session', 'auth_cookie') ?>
-		<?= form_input("auth_cookie",$config['auth_cookie'],['id' => 'auth_cookie','class' => 'form-control','placeholder' => 'Cookie Session from Credentials','readonly' => 'readonly']); ?>		
+
+		<?= form_hidden("auth_cookie",$config['auth_cookie'],['id' => 'auth_cookie','class' => 'form-control','placeholder' => 'Cookie Session from Credentials','readonly' => 'readonly']); ?>		
 	</div>
 	<hr>	
 	<?= form_submit('submit','Update SAP Data',['class' => 'add_auth btn btn-info btn-block']); ?>	

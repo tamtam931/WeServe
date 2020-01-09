@@ -52,7 +52,6 @@ class weserve_sap extends CI_Model {
 
 
 			$raw = $this->weserve_sap_config->findOrfail($this->where_activated);
-			$config = $raw[0];
 
 			$weserve_sap = $this->weserveSAPinit($raw[0],$main_resource);
 
@@ -88,7 +87,7 @@ class weserve_sap extends CI_Model {
 		
     */
 
-    public function SUpdate($resource,$body){
+    public function Update($resource,$endpoint,$body){
 
     	$weserve_sap = false;
 
@@ -99,9 +98,8 @@ class weserve_sap extends CI_Model {
     		if ($body_checker > 0) {
     			
 				$raw = $this->weserve_sap_config->findOrfail($this->where_activated);
-				$config = $raw[0];
 
-				$weserve_sap = $this->weserveSAPinit($raw[0],$main_resource,$body);
+				$weserve_sap = $this->weserveSAPinit($raw[0],$resource,$endpoint,$body);
 
     		}
 
@@ -116,7 +114,6 @@ class weserve_sap extends CI_Model {
 
     //End
 
-	
 
 	public function generateUnitAttributes($unit_obj){
 
@@ -158,54 +155,34 @@ class weserve_sap extends CI_Model {
 	//End
 
 	/*
-		Private function for Guzzle HTTP initialization GET
+		Private function for Guzzle HTTP initializations
 	*/
 
-	private function weserveSAPinit($params,$resource){
+	private function weserveSAPinit($params,$resource,$endpoint=null,$body=null){
 
 		if ($params && $resource) {
 
 			$this->load->library('weserve_guzzle',['authentication' => $params]);
 
-			$data = $this->weserve_guzzle->weserve_sap_get($resource);
+			if ($endpoint && $body) {
 
-			if (isset($data['status'])) {
-
-				return false;
-
-			} else {
-
-				return $data;
-			}
-
-		} else {
-
-			return false;
-		}
-	}		
-
-	//End
-
-	/*
-		Private function for Guzzle HTTP initialization POST
-	*/
-
-	private function weserveSAPinitPOST($params,$resource,$body){
-
-		if ($params && $resource) {
-
-			$this->load->library('weserve_guzzle',['authentication' => $params]);
-
-			$data = $this->weserve_guzzle->weserve_sap_put($resource,$body);
-
-			if ($data['status']) {
-
-				return $data;
+				$headers = array('endpoint' => $endpoint, 'body' => $body);
+				
+				$data = $this->weserve_guzzle->weserve_sap_put($resource,$headers);
 
 			} else {
 
-				return false;
+				$data = $this->weserve_guzzle->weserve_sap_get($resource);
+
+				if (isset($data['status'])) {
+
+					return false;
+
+				}				
 			}
+
+			return $data;
+			
 
 		} else {
 

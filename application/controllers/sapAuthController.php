@@ -303,7 +303,7 @@ class sapAuthController extends CI_Controller
 
 			try {
 
-		    	$url = $auth['protocol'].'://'.$auth['domain'].$auth['uri'].'/UnitTypes';
+		    	$url = $auth['protocol'].'://'.$auth['domain'].$auth['uri'].'UnitTypes';
 		    	$credentials = [
 		    		$auth['username'],
 		    		$auth['password']

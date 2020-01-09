@@ -15,19 +15,17 @@ use GuzzleHttp\Exception\ClientException;
 
 class weserve_guzzle {
 
-	private $base_uri = SAP_HOST.SAP_BASE_URI;
+	private $base_uri;
 	private $client = null;
 
-	private $auth_username;
-	private $auth_password;
 	private $auth_session_cookie;
-
 	private $jar;
 
 	function __construct($credentials){
 
 
 		$this->auth_session_cookie = $credentials['authentication'];
+		$this->base_uri = $credentials['authentication']['sap_domain'].$credentials['authentication']['sap_base'];
 
 		$this->client = new Client();
 		$this->jar = new CookieJar();
@@ -39,7 +37,7 @@ class weserve_guzzle {
 
 	public function weserve_sap_get($resource,$token=false){
 
-		//$sap_auth = $this->weserve_sap_auth($resource);
+		$url = $this->base_uri.$resource;
 
 		$session_cookie = unserialize($this->auth_session_cookie['auth_cookie']);
 
@@ -51,7 +49,7 @@ class weserve_guzzle {
 			];
 
 			$user_cookie = $this->jar->fromArray($test_array,$session_cookie[0]['Domain']);
-			$url = $this->base_uri.$resource;
+			
 
 			try {
 				
@@ -70,7 +68,7 @@ class weserve_guzzle {
 
 				if ($returnStatus) {
 
-					return $response->getBody()->getContents();
+					return ($token ? $response->getHeaders() : $response->getBody()->getContents());
 
 				} else {
 
@@ -82,59 +80,33 @@ class weserve_guzzle {
 
 			} catch (ClientException $e) {
 
-		    	/*
-					Update session cookie on DB if current data is expired
-					Author: Ben Zarmaynine E. Obra
-					Date: 01-07-20
-		    	*/
+				$exceptionResult = $e->getResponse();
 
-				$url = $this->base_uri.$resource;
+				if ($exceptionResult->getStatusCode() == 401) {
+					
+			    	$credentials = [
+			    		$this->auth_session_cookie['auth_username'],
+			    		$this->auth_session_cookie['auth_password']
+			    	];
 
-		    	$credentials = [
-		    		$this->auth_session_cookie['auth_username'],
-		    		$this->auth_session_cookie['auth_password']
-		    	];
+			    	$csrf = ($token ? true : false);
 
-		    	set_time_limit(0);
+			    	/*
+						Update session cookie on DB if current data is expired
+						Author: Ben Zarmaynine E. Obra
+						Date: 01-07-20
+			    	*/
 
-		    	if ($token) {
-		    		   
-					$response = $this->client->get($url, ['auth' => $credentials,'headers' => ['Accept' => 'application/json','x-csrf-token' => 'fetch'],'cookies' => $this->jar]);
+					$this->weserve_sap_auth($url,$credentials,$csrf);
+
+					//End
 
 				} else {
 
-					$response = $this->client->get($url, ['auth' => $credentials,'headers' => ['Accept' => 'application/json'],'cookies' => $this->jar]);
-				}	    	
-
-
-				$update_cookie = $this->CI->weserve_sap_config->update(['id' => $this->auth_session_cookie['id']],['auth_cookie' => serialize($this->jar->toArray())]);
-
-
-				if ($update_cookie) {
-					
-					set_time_limit(30);
-
-					$statusCode = $response->getStatusCode();
-
-					$returnStatus = $this->statusCode($statusCode);
-
-					if ($returnStatus) {
-
-						return $response->getBody()->getContents();
-
-					} else {
-
-						$validation['status'] = $statusCode;
-						$validation['phrase'] = $response->getReasonPhrase();
-
-						return $validation;
-					}
-
+					return false;
 				}
-				//End
 
 			}
-
 
 
 		} else {
@@ -146,29 +118,69 @@ class weserve_guzzle {
 
 	}
 
-	public function weserve_sap_put($resource,$body){
+	public function weserve_sap_put($resource,$headers){
 
-		if ($resource) {
-			
-			$find = $this->weserve_sap_get($resource,true);
+		if ($resource && $headers['endpoint'] && $headers['body']) {
 
-			$data = json_decode($find,true);
+				$init_resource = $this->base_uri.$resource;
 
-			$response = $this->client->put($resource, ['headers' => ['Accept' => 'application/json','x-csrf-token' => 'fetch','Content-Type' => 'application/json'],'body' => $body, 'cookies' => $user_cookie]);		
-			$statusCode = $response->getStatusCode();
+				/*
+					Get SAP Token for PUT method using initial resource ('$resource')
+				*/
+				$find = $this->weserve_sap_get($resource,true);
+				$csrf = $find['x-csrf-token'][0];
+				//End
 
-			$returnStatus = $this->statusCode($statusCode);
+				/*$session_cookie = unserialize($this->auth_session_cookie['auth_cookie']);
 
-			$validation['phrase'] = $response->getReasonPhrase();
+				$test_array = [
+					$session_cookie[0]['Name'] => $session_cookie[0]['Value'],
+					$session_cookie[1]['Name'] => $session_cookie[1]['Value']
+				];
 
-			if ($returnStatus) {
+				$user_cookie = $this->jar->fromArray($test_array,$session_cookie[0]['Domain']);*/				
 				
-				$validation['status'] = $statusCode;
+				/*
+					if csrf found on initial resource ('$resource') add the instance of '$endpoint' parameter to
+					declare the main url
 				
-			} else {
+				*/
 
-				$validation['status'] = false;
-			}
+				$url = ($csrf ? $init_resource.$headers['endpoint'] : $this->base_uri);
+					
+				//End
+
+				/*
+					PUT request initialization for specified resource
+				
+				*/
+
+				$response = $this->client->put($url, [
+					'headers' => [
+						'Accept' => 'application/json',
+						'x-csrf-token' => $csrf,
+						'Content-Type' => 'application/json'
+					],
+					'body' => json_encode($headers['body']),
+					'cookies' => $this->jar
+				]);
+
+				//End
+
+				$statusCode = $response->getStatusCode();
+
+				$returnStatus = $this->statusCode($statusCode);
+
+				$validation['phrase'] = $response->getReasonPhrase();
+
+				if ($returnStatus) {
+					
+					$validation['status'] = $statusCode;
+					
+				} else {
+
+					$validation['status'] = false;
+				}	
 
 			return $validation;
 
@@ -180,47 +192,52 @@ class weserve_guzzle {
 	}	
 
 
-	private function weserve_sap_auth($resource){
+	/*
+		Private function for class transactions
+	*/
+	private function weserve_sap_auth($resource,$credentials,$csrf){
 
-		try {
-			
-			$url = $this->base_uri.$resource;
+		if ($resource && $credentials) {
 
-			$credentials = [
-				$this->auth_username,
-				$this->auth_password
-			];
+			set_time_limit(0);
 
-			$sessions = count($this->jar);
-
-			if ($sessions) {
+			if ($csrf) {
 				
-
-				$response = $this->client->get($url, ['cookies' => $this->jar]);
+				$response = $this->client->get($resource, ['auth' => $credentials,'headers' => ['Accept' => 'application/json','x-csrf-token' => 'fetch'],'cookies' => $this->jar]);
 
 			} else {
 
-				$response = $this->client->get($url, ['auth' => $credentials,'cookies' => $this->jar]);
-			}
-			
-			
-			$statusCode = $response->getStatusCode();
-
-			$returnStatus = $this->statusCode($statusCode);
-			
-			if ($returnStatus) {
-
-				return $this->jar;
-
+				$response = $this->client->get($resource, ['auth' => $credentials,'headers' => ['Accept' => 'application/json'],'cookies' => $this->jar]);
 			}
 
-			return false;			
+			$update_cookie = $this->CI->weserve_sap_config->update(['id' => $this->auth_session_cookie['id']],['auth_cookie' => serialize($this->jar->toArray())]);
 
+			if ($update_cookie) {
+				
+				set_time_limit(30);
 
-		} catch (ClientException $e) {
+				$statusCode = $response->getStatusCode();
 
+				$returnStatus = $this->statusCode($statusCode);
+
+				if ($returnStatus) {
+
+					return ($csrf ? $response->getHeaders() : $response->getBody()->getContents());
+
+				} else {
+
+					$validation['status'] = $statusCode;
+					$validation['phrase'] = $response->getReasonPhrase();
+
+					return $validation;
+				}
+
+			}			
+			
+		} else {
+
+			set_time_limit(30);
 			return false;
-			
 		}
 
 	}
@@ -246,7 +263,8 @@ class weserve_guzzle {
 			return false;
 		}
 
-	}	
+	}
+	//End	
 
 
 }

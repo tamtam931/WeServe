@@ -138,16 +138,23 @@ class sapUnitController extends CI_Controller
 		    				*/
 								$UnitParkingValue = $assoc_resource[$i]['UNIT_TYPE']['ZZSALES_UNIT_TYPE']['UNIT_TYPE_CODE'];
 
-								switch ($UnitParkingValue) {
-									case 'UN':
-										$_POST['unit_number'] = $assoc_resource[$i]['REFNO'];
-									case 'PK':
-										$_POST['parking_number'] = $assoc_resource[$i]['REFNO'];
-									case 'UP':
-										$_POST['unit_number'] = $assoc_resource[$i]['REFNO'];
-									default:
-										$_POST['unit_number'] = null;
-										$_POST['parking_number'] = null;
+								if ($UnitParkingValue == 'UN') {
+									
+									$_POST['unit_number'] = $assoc_resource[$i]['REFNO'];
+
+								} else if($UnitParkingValue == 'PK'){
+
+									$_POST['parking_number'] = $assoc_resource[$i]['REFNO'];
+
+								} else if ($UnitParkingValue == 'UP') {
+									
+									$_POST['unit_number'] = $assoc_resource[$i]['REFNO'];
+
+								} else {
+
+									$_POST['unit_number'] = null;
+									$_POST['parking_number'] = null;
+
 								}
 
 							//End
@@ -156,7 +163,7 @@ class sapUnitController extends CI_Controller
 							$unit_status = $assoc_resource[$i]['STATUS']['TEXT'];
 							$_POST['unit_status'] = $unit_status;
 
-							$occ_per_date = $assoc_resource[$i]['TURNOVER']['OCC_PER_DATE'];
+							$occ_per_date = $assoc_resource[$i]['TURNOVER_DATE']['OCC_PER_DATE'];
 							$_POST['unit_occupancy_date'] = ($occ_per_date != '00000000' ? date("Y-m-d",strtotime($occ_per_date)) : null);
 							
 							$_POST['status'] = (($occ_per_date != '00000000' && ($unit_status == 'OPEN' || $unit_status == 'SOLD')) ? 5 : 1);

@@ -18,6 +18,7 @@ class sapCustomerController extends CI_Controller
         $this->role_id = user('role');
         $this->load->model('weserve_sap');
         $this->load->model('weserve_sap_customer');
+        $this->load->model('weserve_buyersDocuments');
 
 	}
 
@@ -64,7 +65,7 @@ class sapCustomerController extends CI_Controller
 				$params = $this->input->post('sap_resource');
 				unset($_POST['sap_resource']);
 
-				$ctr = 1;
+				$ctr = 767;
 
 				set_time_limit(0);
 				while(true){
@@ -87,7 +88,9 @@ class sapCustomerController extends CI_Controller
 								continue;
 							}
 
+
 							$_POST['customer_number'] = $assoc_resource[$i]['KUNNR'];
+
 							$_POST['customer_name'] = $assoc_resource[$i]['PARTNER_DATA']['NAME_FIRST'].' '.$assoc_resource[$i]['PARTNER_DATA']['NAME_LAST'];
 							$phone_length = count($assoc_resource[$i]['PHONE']);
 
@@ -127,7 +130,30 @@ class sapCustomerController extends CI_Controller
 							$_POST['tin'] = $assoc_resource[$i]['DATA']['STCD1'];
 							$_POST['gender'] = ($assoc_resource[$i]['PARTNER_DATA']['SEX'] == 2 ? 'Male' : 'Female');
 
-							$add = $this->weserve_sap_customer->insert($this->input->post());							
+							/*
+								Added insertion of Customer's Notices on table tbl_buyer's documents
+								Author: Ben Zarmaynine E. Obra
+								Date: 01-09-20
+							*/
+							foreach ($assoc_resource[$i]['NOTICE'] as $key => $value) {
+								
+								$_POST['document_description'] = $key;
+								$_POST['status_date'] = $this->getBirtDate($value);
+								$_POST['document_type'] = 'NOTICE';
+
+								$this->weserve_buyersDocuments->insert($this->input->post(['customer_number','document_description','status_date','document_type']));
+							}														
+
+							/*
+								Destroy post parameters for notices insert
+							*/							
+							unset($_POST['document_description']);
+							unset($_POST['status_date']);
+							unset($_POST['document_type']);
+								
+							//end
+
+							$add = $this->weserve_sap_customer->insert($this->input->post());														
 
 						}
 						$ctr++;
