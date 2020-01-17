@@ -8,19 +8,22 @@ class Admin_model extends CI_Model {
     }
     
     public function get_positions() {
-       $this->db->select("*"); 
-       $this->db->from('tbl_position');
-       $query = $this->db->get();
-       return $query->result();
-    }
+      $this->db->select("*"); 
+      $this->db->from('tbl_position');
+      $this->db->where('status', 0); // active
+      $query = $this->db->get();
+      return $query->result();
+   }
 
-    public function get_positions_by_id($position_id) {
-       $this->db->select("*"); 
-       $this->db->from('tbl_position');
-       $this->db->where('id', $position_id);
-       $query = $this->db->get();
-       return $query->row();
-    }
+   public function get_positions_by_id($position_id) {
+    $this->db->select("*"); 
+    $this->db->from('tbl_position');
+    $this->db->where('id', $position_id);
+    $this->db->where('status', 0); // active
+    $query = $this->db->get();
+    return $query->row();
+ }
+ 
     
     
     public function get_users() {
@@ -107,6 +110,7 @@ class Admin_model extends CI_Model {
       $this->db->select("*"); 
       $this->db->from('tbl_position');
       $this->db->where('id', $position_id);
+       // $this->db->where('status', 0); // active
       $query = $this->db->get();
       return $query->row();
     }
@@ -280,9 +284,11 @@ class Admin_model extends CI_Model {
       $this->db-> select("*, tbl_projects.id AS project_id");
       $this->db-> from('tbl_turnover_schedule');
       $this->db->join('tbl_buyers_transaction','tbl_buyers_transaction.customer_number = tbl_turnover_schedule.customer_number');
-      $this->db->join('tbl_projects','tbl_buyers_transaction.project = tbl_projects.project_code');
+      $this->db->join('tbl_projects','tbl_buyers_transaction.project = tbl_projects.project_code_sap');
       $this->db->where('tbl_turnover_schedule.status', 0); //active
+      $this->db->where('tbl_turnover_schedule.used_link', 0); //link status not used
       $this->db->where('tbl_turnover_schedule.schedule', $date);
+      $this->db->where('tbl_turnover_schedule.sequence', 1);
       $query = $this->db->get();
       return $query->result();
     }
@@ -291,9 +297,10 @@ class Admin_model extends CI_Model {
       $this->db-> select("*, tbl_projects.id AS project_id");
       $this->db-> from('tbl_turnover_schedule');
       $this->db->join('tbl_buyers_transaction','tbl_buyers_transaction.customer_number = tbl_turnover_schedule.customer_number');
-      $this->db->join('tbl_projects','tbl_buyers_transaction.project = tbl_projects.project_code');
+      $this->db->join('tbl_projects','tbl_buyers_transaction.project = tbl_projects.project_code_sap');
       $this->db->where('tbl_turnover_schedule.status', 0); //active
       $this->db->where('tbl_turnover_schedule.schedule', $date);
+      $this->db->where('tbl_turnover_schedule.used_link', 0); //link status not used
       $this->db->where('tbl_turnover_schedule.assigned_to', $associate);
       $query = $this->db->get();
       return $query->result();
@@ -328,6 +335,48 @@ class Admin_model extends CI_Model {
       $this->db-> select("unit_type");
       $this->db-> from('tbl_unit_type');
       $this->db->where('id', $id); //active
+      $query = $this->db->get();
+      return $query->row();
+
+    }
+
+    //Viel
+    public function change_position_status($position_id, $status) {
+      $this->db->set('status', $status);
+      $this->db->where('id', $position_id);
+      $this->db->update('tbl_position');
+      return true;
+    
+    }
+
+    //Viel
+    public function get_positions_by_description($position_desc) {
+      $this->db->select("*"); 
+      $this->db->from('tbl_position');
+      $this->db->where('position_desc', $position_desc);
+      $this->db->where('status', 0); // active
+      $query = $this->db->get();
+      return $query->row();
+   }
+
+    //Viel
+    public function get_checking_area_list_by_description($area_description) {
+      $this->db-> select("*");
+      $this->db-> from('tbl_checking_areas_list');
+      $this->db->where('area_description', $area_description);
+      $query = $this->db->get();
+      return $query->row();
+
+    }
+
+    // viel
+    public function validate_checking_areas($unit_type, $project, $area_id) {
+      $this->db-> select("*");
+      $this->db-> from('tbl_checking_areas');
+      $this->db->where('unit_type', $unit_type);
+      $this->db->where('project', $project);
+      $this->db->where('area_id', $area_id);
+      $this->db->where('status', 0); //active
       $query = $this->db->get();
       return $query->row();
 
@@ -442,12 +491,14 @@ class Admin_model extends CI_Model {
     $this->db->select("*, tbl_tickets.id AS ticket_id, tbl_tickets.status AS ticket_status");
     $this->db->from('tbl_tickets');
     $this->db->join('tbl_users', 'tbl_users.id = tbl_tickets.created_by');
-    $this->db->where('tbl_tickets.status', 0); //active
+    $this->db->join('tbl_buyers_transaction', 'tbl_buyers_transaction.customer_number = tbl_tickets.customer_number');
+    $this->db->join('tbl_units', 'tbl_units.runitid = tbl_buyers_transaction.runitid AND tbl_units.project = tbl_buyers_transaction.project');
+    $this->db->join('tbl_dashboard_status', 'tbl_units.status = tbl_dashboard_status.id');
     $query = $this->db->get();
     return $query->result();
-
   }
 
+  
   public function get_ticket_by_id($ticket_id)
   {
     $this->db->select("*, tbl_tickets.id AS ticket_id, tbl_tickets.status AS ticket_status, assigned_to.firstname AS a_firstname, assigned_to.lastname AS a_lastname, tbl_projects.project AS project_name, tbl_projects.id AS project_id, tbl_unit_type.id AS unit_type_id,tbl_buyers.id as buyer_id, tbl_buyers.email_address as buyer_email");
@@ -458,7 +509,7 @@ class Admin_model extends CI_Model {
     $this->db->join('tbl_users assigned_to', 'tbl_tickets.assigned_to = assigned_to.id');
     $this->db->join('tbl_units', 'tbl_units.runitid = tbl_buyers_transaction.runitid AND tbl_units.project = tbl_buyers_transaction.project');
     $this->db->join('tbl_unit_type', 'tbl_units.unit_type = tbl_unit_type.unit_type_code');
-    $this->db->join('tbl_projects', 'tbl_units.project = tbl_projects.project_code');
+    $this->db->join('tbl_projects', 'tbl_units.project = tbl_projects.project_code_sap');
     $this->db->where('tbl_tickets.id', $ticket_id); //active
     $query = $this->db->get();
     return $query->row();
@@ -468,13 +519,14 @@ class Admin_model extends CI_Model {
   public function get_ticket_by_schedule_and_id($ticket_number, $project)
   {
 
-    $this->db->select("*");
+    $this->db->select("*, tbl_unit_type.unit_type AS unit_type_desc");
     $this->db->from('tbl_turnover_schedule');
     $this->db->join('tbl_buyers_transaction', 'tbl_buyers_transaction.customer_number = tbl_turnover_schedule.customer_number');
-      $this->db->join('tbl_units', 'tbl_units.runitid = tbl_buyers_transaction.runitid AND tbl_units.project = tbl_buyers_transaction.project');
-    $this->db->join('tbl_buyers', 'tbl_buyers_transaction.customer_number = tbl_buyers.customer_number');
-     $this->db->join('tbl_tickets', 'tbl_tickets.ticket_number = tbl_turnover_schedule.ticket_number');
-    $this->db->where('tbl_buyers_transaction.project', $project); 
+     $this->db->join('tbl_units', 'tbl_units.runitid = tbl_buyers_transaction.runitid AND tbl_units.project = tbl_buyers_transaction.project');
+     $this->db->join('tbl_unit_type', 'tbl_units.unit_type = tbl_unit_type.unit_type_code');
+     $this->db->join('tbl_buyers', 'tbl_buyers_transaction.customer_number = tbl_buyers.customer_number');
+    $this->db->join('tbl_tickets', 'tbl_tickets.ticket_number = tbl_turnover_schedule.ticket_number');
+     $this->db->where('tbl_buyers_transaction.project', $project); 
     $this->db->where('tbl_turnover_schedule.ticket_number', $ticket_number); 
 
     $query = $this->db->get();
@@ -482,17 +534,27 @@ class Admin_model extends CI_Model {
 
   }
 
+
+  //Viel
+  public function get_user_by_position_id($position_id) {
+    $this->db->select("*"); 
+    $this->db->from('tbl_users');
+    $this->db->where('position', $position_id);
+    $query = $this->db->get();
+    return $query->row();
+   }
+
   public function get_ticket_by_ticket_number($ticket_number)
   {
     $this->db->select("*, tbl_tickets.id AS ticket_id, tbl_tickets.status AS ticket_status, assigned_to.firstname AS a_firstname, assigned_to.lastname AS a_lastname, tbl_projects.project AS project_name, tbl_projects.id AS project_id, tbl_unit_type.id AS unit_type_id, tbl_projects.project_code AS project_code");
-    $this->db->from('tbl_tickets');
+   $this->db->from('tbl_tickets');
     $this->db->join('tbl_users created_by', 'created_by.id = tbl_tickets.created_by');
     $this->db->join('tbl_buyers_transaction', 'tbl_buyers_transaction.customer_number = tbl_tickets.customer_number');
     $this->db->join('tbl_buyers', 'tbl_buyers_transaction.customer_number = tbl_buyers.customer_number');
     $this->db->join('tbl_users assigned_to', 'tbl_tickets.assigned_to = assigned_to.id');
     $this->db->join('tbl_units', 'tbl_units.runitid = tbl_buyers_transaction.runitid AND tbl_units.project = tbl_buyers_transaction.project');
     $this->db->join('tbl_unit_type', 'tbl_units.unit_type = tbl_unit_type.unit_type_code');
-    $this->db->join('tbl_projects', 'tbl_units.project = tbl_projects.project_code');
+    $this->db->join('tbl_projects', 'tbl_units.project = tbl_projects.project_code_sap');
     $this->db->where('tbl_tickets.ticket_number', $ticket_number); //active
     $query = $this->db->get();
     return $query->row();
@@ -506,7 +568,9 @@ class Admin_model extends CI_Model {
     $this->db->join('tbl_users', 'tbl_users.id = tbl_tickets.created_by');
     $this->db->join('tbl_buyers_transaction', 'tbl_buyers_transaction.customer_number = tbl_tickets.customer_number');
     $this->db->join('tbl_units', 'tbl_units.runitid = tbl_buyers_transaction.runitid AND tbl_units.project = tbl_buyers_transaction.project');
+    $this->db->join('tbl_dashboard_status', 'tbl_units.status = tbl_dashboard_status.id');
     $this->db->where('tbl_tickets.assigned_to', $assigned_to); //active
+    //$this->db->limit('3');
     $query = $this->db->get();
     return $query->result();
 
@@ -674,10 +738,19 @@ class Admin_model extends CI_Model {
     return true;
   }
 
-  public function update_position($position_id, $section, $role, $position_desc){
+  //Viel
+  public function get_all_positions() {
+    $this->db->select("*"); 
+    $this->db->from('tbl_position');
+    $query = $this->db->get();
+    return $query->result();
+   }
+
+  public function update_position($position_id, $section, $role, $position_desc, $status){
     $this->db->set('position_desc', $position_desc);
     $this->db->set('role_id', $role);
     $this->db->set('section_id', $section);
+    $this->db->set('status', $status);
     $this->db->where('id', $position_id);
     $this->db->update('tbl_position');
     return true;
@@ -764,7 +837,7 @@ class Admin_model extends CI_Model {
   public function get_customer_by_custnum($customer_number){
     $this->db->select("*"); 
     $this->db->from('tbl_buyers');
-    $this->db->join('tbl_buyers_transaction', 'tbl_buyers.customer_number = tbl_buyers_transaction.customer_number');
+    $this->db->join('tbl_buyers_transaction', 'tbl_buyers.customer_number = tbl_buyers_transaction.customer_number' , 'left');
     $this->db->where('tbl_buyers.customer_number', $customer_number);
     $query = $this->db->get();
     return $query->row();
@@ -787,7 +860,7 @@ class Admin_model extends CI_Model {
     $this->db->from('tbl_buyers');
     $this->db->join('tbl_buyers_transaction', 'tbl_buyers.customer_number = tbl_buyers_transaction.customer_number');
     $this->db->join('tbl_units', 'tbl_units.project = tbl_buyers_transaction.project AND tbl_units.runitid = tbl_buyers_transaction.runitid');
-    $this->db->join('tbl_projects', 'tbl_units.project = tbl_projects.project_code');
+    $this->db->join('tbl_projects', 'tbl_units.project = tbl_projects.project_code_sap');
 
     $query = $this->db->get();
     return $query->result();
@@ -798,31 +871,70 @@ class Admin_model extends CI_Model {
     $this->db->from('tbl_buyers');
     $this->db->join('tbl_buyers_transaction', 'tbl_buyers.customer_number = tbl_buyers_transaction.customer_number');
     $this->db->join('tbl_units', 'tbl_units.project = tbl_buyers_transaction.project AND tbl_units.runitid = tbl_buyers_transaction.runitid');
-    $this->db->join('tbl_projects', 'tbl_units.project = tbl_projects.project_code');
+    $this->db->join('tbl_projects', 'tbl_units.project = tbl_projects.project_code_sap');
      $this->db->where('tbl_units.id', $unit_id);
     $query = $this->db->get();
     return $query->row();
   }
 
 
-   public function get_customer_transaction_by_customer_number($customer_number){
+  public function get_customer_transaction_by_customer_number($customer_number){
     $this->db->select("*, tbl_projects.id AS project_id");
     $this->db->from('tbl_buyers');
     $this->db->join('tbl_buyers_transaction', 'tbl_buyers.customer_number = tbl_buyers_transaction.customer_number');
     $this->db->join('tbl_units', 'tbl_units.project = tbl_buyers_transaction.project AND tbl_units.runitid = tbl_buyers_transaction.runitid');
-    $this->db->join('tbl_projects', 'tbl_units.project = tbl_projects.project_code');
+    $this->db->join('tbl_projects', 'tbl_units.project = tbl_projects.project_code_sap');
     $this->db->where('tbl_buyers.customer_number', $customer_number);
 
     $query = $this->db->get();
     return $query->row();
   }
 
-   public function get_all_properties_by_tin($tin_number){
+  //Viel
+  public function get_checking_areas_by_area_id($area_id) {
+    $this->db-> select("*");
+    $this->db-> from('tbl_checking_areas');
+    $this->db->where('area_id', $area_id); 
+    $query = $this->db->get();
+    return $query->row();
+
+    }
+
+  //Viel
+  public function add_section($data) {
+    $this->db->insert('tbl_section', $data);
+    return $this->db->insert_id();
+  }
+
+  //Viel
+  public function add_role($data) {
+    $this->db->insert('tbl_roles', $data);
+    return $this->db->insert_id();
+  }
+
+  //Viel
+  public function update_acceptance_document($ticket_id, $filename) {
+    $this->db->set('acceptance_document', $filename);
+    $this->db->where('id', $ticket_id);
+    $this->db->update('tbl_tickets');
+    return $this->db->affected_rows();
+  }
+
+  //Viel
+  public function update_temp_parking_document($ticket_id, $filename) {
+    $this->db->set('temporary_parking_document', $filename);
+    $this->db->where('id', $ticket_id);
+    $this->db->update('tbl_tickets');
+    return $this->db->affected_rows();
+  } 
+
+
+  public function get_all_properties_by_tin($tin_number){
     $this->db->select("*"); 
     $this->db->from('tbl_buyers_transaction');
      $this->db->join('tbl_buyers', 'tbl_buyers.customer_number = tbl_buyers_transaction.customer_number');
     $this->db->join('tbl_units', 'tbl_units.project = tbl_buyers_transaction.project AND tbl_units.runitid = tbl_buyers_transaction.runitid');
-    $this->db->join('tbl_projects', 'tbl_units.project = tbl_projects.project_code');
+    $this->db->join('tbl_projects', 'tbl_units.project = tbl_projects.project_code_sap');
     $this->db->where('tbl_buyers.tin', $tin_number);
     $query = $this->db->get();
     return $query->result();
@@ -892,7 +1004,7 @@ class Admin_model extends CI_Model {
   public function get_head_assoc_per_sched($assigned_to ,$schedule , $project_to){
     $this->db->select("* ,(SELECT distance FROM tbl_project_distance WHERE project_from = (SELECT id FROM tbl_projects WHERE project_code = SUBSTRING_INDEX(ticket_number, '-' , 1)) and project_to = '".$project_to."') as distance ");
     $this->db->from('tbl_turnover_schedule');
-    $this->db->join('tbl_projects' ,'SUBSTRING_INDEX(ticket_number, "-" , 1) = tbl_projects.project_code');
+    $this->db->join('tbl_projects' ,'SUBSTRING_INDEX(ticket_number, "-" , 1) = tbl_projects.project_code_sap');
     $this->db->where('status', '0');
     $this->db->where('assigned_to' , $assigned_to);
     $this->db->like('schedule' , $schedule);
@@ -935,7 +1047,6 @@ class Admin_model extends CI_Model {
     return $this->db->get()->result();
   }
 
-
    //Get the sched of select hand over assoc 
    public function get_sched_of_outbond_assoc($date , $assigned_to){
     $this->db->select("*");
@@ -961,9 +1072,10 @@ class Admin_model extends CI_Model {
   public function get_project_id_assoc($project_code){
     $this->db->select("id");
     $this->db->from("tbl_projects");
-    $this->db->where('project_code' , $project_code);
+    $this->db->where('project_code_sap' , $project_code);
     return $this->db->get()->row();
   }
+
 
   public function get_distance_project($origin , $distination){
     $this->db->select("distance");
@@ -971,6 +1083,14 @@ class Admin_model extends CI_Model {
     $this->db->where("project_from" , $origin);
     $this->db->where("project_to" , $distination);
     return $this->db->get()->row();    
+  }
+
+  //Emil
+  public function check_setup_disatnce($project_to){
+    $this->db->select("*");
+    $this->db->from("tbl_project_distance");
+    $this->db->where("project_to" , $project_to);
+    return $this->db->get()->result();    
   }
 
   //For Jobs
@@ -999,7 +1119,7 @@ class Admin_model extends CI_Model {
     return $this->db->get()->result();
   }
 
-  public function get_turn_over_qualifieds(){
+  public function get_turn_over_qualifieds($where=null){
     $this->db->select("* , DATE(accepted_handover) as accepted_handover_date , DATE(approved_turnover) as approved_turnover_date");
     $this->db->from('tbl_buyers_transaction');
     $this->db->join('tbl_buyers' , 'tbl_buyers_transaction.customer_number = tbl_buyers.customer_number');
@@ -1046,7 +1166,7 @@ class Admin_model extends CI_Model {
   }
 
   public function get_ticket_number_by_customer_number($customer_number){
-    $this->db->select('tbl_tickets.id as id , tbl_buyers.email_address');
+    $this->db->select('tbl_tickets.id as id , tbl_buyers.email_address , tbl_tickets.ticket_number as ticket_number');
     $this->db->from('tbl_tickets');
     $this->db->join('tbl_buyers' , 'tbl_tickets.customer_number = tbl_buyers.customer_number');
     $this->db->where('tbl_tickets.customer_number' , $customer_number);
@@ -1143,7 +1263,7 @@ class Admin_model extends CI_Model {
     $this->db->join('tbl_users', 'tbl_turnover_schedule.assigned_to = tbl_users.id');
     $this->db->where('tbl_turnover_schedule.status', 0); //active
     $this->db->where('tbl_users.position' , $position);
-    $this->db->where('tbl_projects.project_code', $project_code); //active
+    $this->db->where('tbl_projects.project_code_sap', $project_code); //active
     $this->db->order_by('tbl_turnover_schedule.schedule', 'ASC'); 
     $this->db->group_by('tbl_turnover_schedule.schedule');
     $query = $this->db->get();
@@ -1247,7 +1367,7 @@ class Admin_model extends CI_Model {
     $this->db->set('status' , 1);
     $this->db->where('ticket_number' , $ticket_number);
     $this->db->update('tbl_turnover_schedule');
-    return $this->db->get()->affected_rows();
+    return true;
   }
 
   //Emil check the second in line queue
@@ -1256,7 +1376,7 @@ class Admin_model extends CI_Model {
     $this->db->from('tbl_turnover_schedule');
     $this->db->where('schedule' , $date);
     $this->db->where('sequence' , 2);
-    return $this->db->get()->result();
+    return $this->db->get()->row();
   }
 
   //Emil get all sched under hand over
@@ -1265,7 +1385,7 @@ class Admin_model extends CI_Model {
     $this->db->from('tbl_turnover_schedule');
     $this->db->join('tbl_users','tbl_turnover_schedule.assigned_to = tbl_users.id');
     $this->db->where('tbl_users.position' , '10');
-    $this->db->where('schedule >=' , $date);
+    $this->db->where('schedule >=' , $date );
     return $this->db->get()->result();
   }
 
@@ -1327,12 +1447,343 @@ class Admin_model extends CI_Model {
 }
 
   public function add_ticket_call_logs($data) {
-        $this->db->insert('tbl_ticket_call_logs', $data);
-        return $this->db->insert_id();
-    }
+    $this->db->insert('tbl_ticket_call_logs', $data);
+    return $this->db->insert_id();
+  }
 
 
+//EMIL 
+  //Add for Link one time access
+  public function save_link_to_db($data){
+    $this->db->insert('tbl_temp_schedule_link' , $data);
+    return $this->db->insert_id();
+  }
+
+  //Emil for link one time use
+  public function update_link_status($link){
+    $this->db->set('status' , 1);
+    $this->db->where('temp_link' , $link);
+    $this->db->update('tbl_temp_schedule_link');
+    return true;
+  }
+
+  //Emil for link one time use
+  public function select_link($link){
+    $this->db->select("*");
+    $this->db->from('tbl_temp_schedule_link');
+    $this->db->where('temp_link' , $link);
+    return $this->db->get()->result();
+  }
+
+  //Emil saving buyes transac
+  public function insert_buyer_transac($data){
+    $this->db->insert('tbl_buyers_transaction' , $data);
+    return $this->db->insert_id();
+  }
+
+ /*  public function check_buyers_transac($data){
+    $this->db->select('tbl_buyers_transaction');
+    $this->db->where('');
+  } */
+
+  //Emil update confirm schedule
+  public function update_schedule($customer_number , $ticket_number){
+    $this->db->set('confirmation_status' , 1);
+    $this->db->where('customer_number' , $customer_number);
+    $this->db->where('ticket_number' , $ticket_number);
+    $this->db->update('tbl_turn_over_schedule');
+    return $this->db->get()->affected_rows();
+  }
+
+  //Emil get all sched exceed 24hrs no confirmation
+  public function get_all_sched_24hrs_no_sched(){
+    $this->db->select("* , TIMESTAMP(date_created) as date_created");
+    $this->db->from('tbl_turnover_schedule');
+    $this->db->where('confirmation_status' , 0);
+    return $this->db->get()->result();
+  }
+
+  //Emil update sched to expired
+  public function update_used_link($customer_number , $ticket_number){
+    $this->db->set('used_link' , 2);
+    $this->db->where('customer_number' , $customer_number);
+    $this->db->where('ticket_number' , $ticket_number);
+    $this->db->update('tbl_turn_over_schedule');
+    return $this->db->get()->affected_rows();
+  }
+
+  //Emil Check the linkif used or expired
+  public function get_link_stat($cust_num , $ticket_num ,$used_link , $confirmed){
+    $this->db->select("*");
+    $this->db->from('tbl_turnover_schedule');
+    $this->db->where('customer_number' , $cust_num);
+    $this->db->where('ticket_number' , $ticket_num);
+    $this->db->where('used_link' , $used_link);
+    //$this->db->where('confirmation_status' , $confirmed);
+    return $this->db->get()->result();
+  }
+
+  //Emil for checking the buyes transac
+  public function get_duplicate_transac($customer_number , $project , $tower , $runitid , $accepted_qcd , $accepted_oomc , $occ_per_date , $tagged_no_show){
+    $this->db->select("*");
+    $this->db->from('tbl_turnover_schedule');
+    $this->db->where('customer_number',$customer_number);
+    $this->db->where('project',$project);
+    $this->db->where('tower',$tower);
+    $this->db->where('runitid',$runitid);
+    $this->db->where('accepted_qcd',$accepted_qcd);
+    $this->db->where('accepted_oomc',$accepted_oomc);
+    $this->db->where('occ_per_date',$occ_per_date);
+    $this->db->where('tagged_no_show',$tagged_no_show);
+    return $this->db->get()->result();
+  }
+
+  //Emil Get the sched of select hand over assoc  between clause
+  public function get_sched_of_hand_over_between($date_delay , $date_advance , $assigned_to){
+    $this->db->select("*");
+    $this->db->from('tbl_turnover_schedule');
+    $this->db->join('tbl_users','tbl_turnover_schedule.assigned_to = tbl_users.id');
+    $this->db->where('tbl_turnover_schedule.assigned_to' , $assigned_to);
+    $this->db->where('schedule >=' , $date_delay);
+    $this->db->where('schedule >=' , $date_advance);
+    $this->db->where('sequence' , 1);
+    $this->db->where('confirmation_status' , 0);
+    return $this->db->get()->result();
+  }
+
+  //Emil get TIN number 
+  public function get_tin_by_customer_number($tin){
+    $this->db->select('customer_number');
+    $this->db->from('tbl_buyers');
+    $this->db->where('tin' , $tin);
+    return $this->db->get()->result();
+  }
+
+   //Emil get buyers_transac by customer 
+   public function get_buyers_trans($cust_num){
+    $this->db->select('*');
+    $this->db->from('tbl_buyers_transaction');
+    $this->db->where('customer_number' , $cust_num);
+    return $this->db->get()->result();
+  }
+
+  //Emil for tickets insertion
+  public function insert_ticket_status($data){
+    $this->db->insert('tbl_ticket_status' , $data);
+    return $this->db->insert_id();
+  }
+  
+  //Emil ticket creation
+  public function create_ticket($project_code){
+    $this->db->select("CONCAT('". $project_code ."' , "-" , YEAR(CURDATE()) , "-" , COUNT(id)) as ticket_number");
+    $this->db->from("tbl_tickets");
+    return $this->db->get()->result();
+  }
 
 
+  // viel 01082020
+  public function update_ticket_activity_status($ticket_number, $user_section, $activity_status, $assigned_to) {
+    $this->db->set('activity_status', $activity_status);
+    $this->db->set('assign_to', $assigned_to);
+    $this->db->where('ticket_number', $ticket_number);
+    $this->db->where('user_section', $user_section);
+    $this->db->update('tbl_ticket_status');
+    return $this->db->affected_rows();
+  }
 
+  public function close_ticket($ticket_number) {
+    $this->db->set('status', 1);
+    $this->db->where('ticket_number', $ticket_number);
+    $this->db->update('tbl_ticket_status');
+    return $this->db->affected_rows();
+  }
+
+
+  //Emil part of outbound notify via email
+  public function get_call_logs($data , $ticket_id){
+    $this->db->select("*");
+    $this->db->from('tbl_call_logs');
+    $this->db->where('DATE(date_time)' , $data);
+    $this->db->where('ticket_id' , $ticket_id);
+    return $this->db->get()->result();
+  }
+
+  //Emil part of outbound notify via email
+  public function get_tickets_for_call_out(){
+    $this->db->select("*");
+    $this->db->from('tbl_tickets');
+    $this->db->where('category' , 'FOR CALLOUT');
+    return $this->db->get()->result();
+  }
+
+  //Emil for line on sche
+  public function count_line_queue($schedule , $assigned_to){
+    $this->db->select("COUNT(*) as result");
+    $this->db->from("tbl_turnover_schedule");
+    $this->db->where('schedule', $schedule);
+    $this->db->where('assigned_to' , $assigned_to);
+    return $this->db->get()->row();
+  }
+
+   //Emil adding on reason for not acceptance
+   public function insert_tickets_comment($data){
+    $this->db->insert('tbl_tickets_comment', $data);
+    return $this->db->insert_id();
+  } 
+
+  //Emil for getting call logs one parameters
+  /* public function get_call_logs($data){
+    $this->db->select("*");
+    $this->db->from('tbl_call_logs');
+    $this->db->where('DATE(date_time)' , $data);
+    return $this->db->get()->result();
+  } */
+
+  //Emil 
+  //Get all tunrover schedule that has used_link = 0 and confirmation_status = 0
+  public function chck_no_reply($data){
+    $this->db->select("*");
+    $this->db->from("tbl_temp_schedule_link");
+    $this->db->where("status" , 0);
+    return $this->db->get()->result();
+  }
+
+  //Emil
+  //Update the link in tbl_temp_schedule_link
+  public function update_tbl_temp_schedule_link($ticket_number){
+    $this->db->set("status" , 1);
+    $this->db->where("ticket_number" , $ticket_number);
+    $this->db->update("tbl_temp_schedule_link");
+    return true;
+  }
+
+  //Emil
+  //update tbl_slot
+  public function update_tbl_turnover_slot($ticket_number){
+    $this->db->set("slot_open" , 1);
+    $this->db->where("ticket_number" , $ticket_number);
+    $this->db->update("tbl_turnover_schedule");
+    return true;
+  }
+
+  //Emil
+  //Update the sequence = 0 means the shedule is Available
+  public function update_sequence($ticket_number){
+    $this->db->set("sequence" , 0);
+    $this->db->where("ticket_number" , $ticket_number);
+    $this->db->update("tbl_turnover_schedule");
+    return true;
+  }
+
+  //Emil
+  public function get_project_sap_id($id){
+    $this->db->select("project_code_sap");
+    $this->db->where("id",$id);
+    return $this->db->get()-row(); 
+  }
+
+  //Emil Update tickets acceptance
+  public function update_acceptance_ticket($ticket_number){
+    $this->db->set("status" , 1);
+    $this->db->where("ticket_number" , $ticket_number);
+    $this->db->update("tbl_tickets");
+    return true;
+  }
+
+   // VIEL
+  public function get_ticket_status_by_role_user_id($role, $user_id, $status) {
+    $this->db->select('*');
+    $this->db->from('tbl_ticket_status');
+    $this->db->where('user_section' , $role);
+    $this->db->where('assign_to' , $user_id);
+    $this->db->where('status' , $status);
+    return $this->db->get()->result();
+  }
+
+  // VIEL
+  public function get_ticket_complete_activity_by_role_user_id_status($role, $user_id) {
+    $this->db->select('*');
+    $this->db->from('tbl_ticket_status');
+    $this->db->where('user_section' , $role);
+    $this->db->where('assign_to' , $user_id);
+    $this->db->where('activity_status' , 1);
+    return $this->db->get()->result();
+  }
+
+   // VIEL
+  public function get_ticket_overdue_by_role_user_id_status($role, $user_id) {
+    $this->db->select('*');
+    $this->db->from('tbl_ticket_status');
+    $this->db->where('user_section' , $role);
+    $this->db->where('assign_to' , $user_id);
+    $this->db->where('status' , 0);
+    $this->db->where('activity_status' , 0);
+    $this->db->where('date_created < NOW() - INTERVAL 1 DAY');
+
+    return $this->db->get()->result();
+  }
+
+   // VIEL
+  public function get_ticket_due_today_by_role_user_id_status($role, $user_id) {
+    $this->db->select('*');
+    $this->db->from('tbl_ticket_status');
+    $this->db->where('user_section' , $role);
+    $this->db->where('assign_to' , $user_id);
+    $this->db->where('status' , 0);
+    $this->db->where('activity_status' , 0);
+    $this->db->where('date_created >= NOW() - INTERVAL 1 DAY');
+
+    return $this->db->get()->result();
+  }
+
+  public function chck_dup_in_line($customer_number , $schedule){
+    $this->db->select("*");
+    $this->db->from("tbl_turnover_schedule");
+    $this->db->where('customer_number' , $customer_number);
+    $this->db->where('schedule' , $schedule);
+    return $this->db->get()->row();
+  }
+
+  public function chck_usr_position($assigned_to){
+    $this->db->select('position');
+    $this->db->from('tbl_users');
+    $this->db->where('id' , $assigned_to);
+    return $this->db->get()->row();
+  }
+
+  
+  //Get schedule to display in full calendar
+  public function get_schedule_event(){
+    $this->db->distinct();
+    $this->db->select("*");
+    $this->db->from('tbl_turnover_schedule');
+    return $this->db->get()->result();
+  }
+
+  public function get_tickets_count(){
+    $this->db->select("COUNT(*) as result");
+    $this->db->from('tbl_tickets');
+    return $this->db->get()->row();
+  }
+
+  public function chck_dup_in_transactions($customer_number , $tower , $runitid , $type , $accepted_qcd , $accepted_handover , $accepted_oomc , $occ_per_date , $tagged_no_show){
+    $query = $this->db->query('SELECT EXISTS(SELECT * FROM tbl_buyers_transaction WHERE customer_number = "'.$customer_number.'" AND tower = "'.$tower.'" AND runitid = "'.$runitid.'" AND type = "'.$type.'" AND accepted_qcd = "'.$accepted_qcd.'" AND accepted_handover = "'.$accepted_handover.'" AND accepted_oomc = "'.$accepted_oomc.'" AND occ_per_date = "'.$occ_per_date.'" AND tagged_no_show = "'.$tagged_no_show.'") as result');
+    return $query->row();
+
+  }
+
+  public function update_dups_record_buyes_transac($customer_number , $tower , $runitid , $type , $accepted_qcd , $accepted_handover , $accepted_oomc , $occ_per_date , $tagged_no_show){
+    $this->db->set('accepted_qcd' , $accepted_qcd);
+    $this->db->set('accepted_handover' , $accepted_handover);
+    $this->db->set('accepted_oomc' , $accepted_oomc);
+    $this->db->set('occ_per_date' , $occ_per_date);
+    $this->db->set('tagged_no_show' , $tagged_no_show);
+    $this->db->where('customer_number' , $customer_number);
+    $this->db->where('tower' , $tower);
+    $this->db->where('runitid' , $runitid);
+    $this->db->where('type' , $type);
+    $this->db->update('tbl_buyers_transaction');
+    return $this->db->affected_rows();
+  }  
+  
 }
