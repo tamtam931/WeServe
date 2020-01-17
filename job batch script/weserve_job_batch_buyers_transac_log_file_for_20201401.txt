@@ -1,0 +1,96 @@
+
+Notice: Undefined index: SERVER_NAME in C:\xampps\htdocs\weserve\application\config\config.php on line 26
+
+A PHP Error was encountered
+
+Severity:    Notice
+Message:     Undefined index: SERVER_NAME
+Filename:    C:\xampps\htdocs\weserve\application\config\config.php
+Line Number: 26
+
+Backtrace:
+	File: C:\xampps\htdocs\weserve\application\config\config.php
+	Line: 26
+	Function: _error_handler
+
+	File: C:\xampps\htdocs\weserve\index.php
+	Line: 315
+	Function: require_once
+
+
+
+A PHP Error was encountered
+
+Severity:    Warning
+Message:     session_start(): Cannot start session when headers already sent
+Filename:    C:\xampps\htdocs\weserve\application\libraries\Session.php
+Line Number: 144
+
+Backtrace:
+	File: C:\xampps\htdocs\weserve\application\libraries\Session.php
+	Line: 144
+	Function: session_start
+
+	File: C:\xampps\htdocs\weserve\application\libraries\Session.php
+	Line: 37
+	Function: _sess_run
+
+	File: C:\xampps\htdocs\weserve\application\controllers\JobController.php
+	Line: 7
+	Function: __construct
+
+	File: C:\xampps\htdocs\weserve\index.php
+	Line: 315
+	Function: require_once
+
+
+
+A PHP Error was encountered
+
+Severity:    Notice
+Message:     Undefined variable: json_spec_unit
+Filename:    C:\xampps\htdocs\weserve\application\controllers\JobController.php
+Line Number: 696
+
+Backtrace:
+	File: C:\xampps\htdocs\weserve\application\controllers\JobController.php
+	Line: 696
+	Function: _error_handler
+
+	File: C:\xampps\htdocs\weserve\index.php
+	Line: 315
+	Function: require_once
+
+
+
+A PHP Error was encountered
+
+Severity:    Notice
+Message:     Undefined variable: s
+Filename:    C:\xampps\htdocs\weserve\application\controllers\JobController.php
+Line Number: 696
+
+Backtrace:
+	File: C:\xampps\htdocs\weserve\application\controllers\JobController.php
+	Line: 696
+	Function: _error_handler
+
+	File: C:\xampps\htdocs\weserve\index.php
+	Line: 315
+	Function: require_once
+
+
+
+An uncaught Exception was encountered
+
+Type:        Error
+Message:     Call to undefined function mysql_free_result()
+Filename:    C:\xampps\htdocs\weserve\application\controllers\JobController.php
+Line Number: 718
+
+Backtrace:
+	File: C:\xampps\htdocs\weserve\index.php
+	Line: 315
+	Function: require_once
+
+
