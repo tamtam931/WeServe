@@ -16,6 +16,7 @@ use GuzzleHttp\Exception\ClientException;
 class weserve_guzzle {
 
 	private $base_uri;
+	private $sapClient;
 	private $client = null;
 
 	private $auth_session_cookie;
@@ -26,6 +27,7 @@ class weserve_guzzle {
 
 		$this->auth_session_cookie = $credentials['authentication'];
 		$this->base_uri = $credentials['authentication']['sap_domain'].$credentials['authentication']['sap_base'];
+		$this->sapClient = $credentials['authentication']['sap_client'];
 
 		$this->client = new Client();
 		$this->jar = new CookieJar();
@@ -55,11 +57,11 @@ class weserve_guzzle {
 				
 				if ($token) {
 					
-					$response = $this->client->get($url, ['headers' => ['Accept' => 'application/json','x-csrf-token' => 'fetch'],'cookies' => $user_cookie]);
+					$response = $this->client->get($url, ['headers' => ['Accept' => 'application/json','x-csrf-token' => 'fetch', 'sap-client' => $this->sapClient],'cookies' => $user_cookie]);
 
 				} else {
 
-					$response = $this->client->get($url, ['headers' => ['Accept' => 'application/json'],'cookies' => $user_cookie]);
+					$response = $this->client->get($url, ['headers' => ['Accept' => 'application/json', 'sap-client' => $this->sapClient],'cookies' => $user_cookie]);
 				}
 
 				$statusCode = $response->getStatusCode();
@@ -120,7 +122,14 @@ class weserve_guzzle {
 
 		} else {
 
-			return false;
+	    	$credentials = [
+	    		$this->auth_session_cookie['auth_username'],
+	    		$this->auth_session_cookie['auth_password']
+	    	];
+
+	    	$csrf = ($token ? true : false);
+
+	    	$this->weserve_sap_auth($url,$credentials,$csrf);
 		}
 
 		
@@ -140,14 +149,14 @@ class weserve_guzzle {
 				$csrf = $find['x-csrf-token'][0];
 				//End
 
-				/*$session_cookie = unserialize($this->auth_session_cookie['auth_cookie']);
+				$session_cookie = unserialize($this->auth_session_cookie['auth_cookie']);
 
 				$test_array = [
 					$session_cookie[0]['Name'] => $session_cookie[0]['Value'],
 					$session_cookie[1]['Name'] => $session_cookie[1]['Value']
 				];
 
-				$user_cookie = $this->jar->fromArray($test_array,$session_cookie[0]['Domain']);*/				
+				$user_cookie = $this->jar->fromArray($test_array,$session_cookie[0]['Domain']);				
 				
 				/*
 					if csrf found on initial resource ('$resource') add the instance of '$endpoint' parameter to
@@ -171,7 +180,7 @@ class weserve_guzzle {
 						'Content-Type' => 'application/json'
 					],
 					'body' => json_encode($headers['body']),
-					'cookies' => $this->jar
+					'cookies' => $user_cookie
 				]);
 
 				//End
@@ -210,37 +219,44 @@ class weserve_guzzle {
 
 			set_time_limit(0);
 
-			if ($csrf) {
-				
-				$response = $this->client->get($resource, ['auth' => $credentials,'headers' => ['Accept' => 'application/json','x-csrf-token' => 'fetch'],'cookies' => $this->jar]);
+			try {
 
-			} else {
-
-				$response = $this->client->get($resource, ['auth' => $credentials,'headers' => ['Accept' => 'application/json'],'cookies' => $this->jar]);
-			}
-
-			$update_cookie = $this->CI->weserve_sap_config->update(['id' => $this->auth_session_cookie['id']],['auth_cookie' => serialize($this->jar->toArray())]);
-
-			if ($update_cookie) {
-				
-				set_time_limit(30);
-
-				$statusCode = $response->getStatusCode();
-
-				$returnStatus = $this->statusCode($statusCode);
-
-				if ($returnStatus) {
-
-					return ($csrf ? $response->getHeaders() : $response->getBody()->getContents());
+				if ($csrf) {
+					
+					$response = $this->client->get($resource, ['auth' => $credentials,'headers' => ['Accept' => 'application/json','x-csrf-token' => 'fetch', 'sap-client' => $this->sapClient],'cookies' => $this->jar]);
 
 				} else {
 
-					$validation['status'] = $statusCode;
-					$validation['phrase'] = $response->getReasonPhrase();
-
-					return $validation;
+					$response = $this->client->get($resource, ['auth' => $credentials,'headers' => ['Accept' => 'application/json', 'sap-client' => $this->sapClient],'cookies' => $this->jar]);
 				}
 
+				$update_cookie = $this->CI->weserve_sap_config->update(['id' => $this->auth_session_cookie['id']],['auth_cookie' => serialize($this->jar->toArray())]);
+
+				if ($update_cookie) {
+					
+					set_time_limit(30);
+
+					$statusCode = $response->getStatusCode();
+
+					$returnStatus = $this->statusCode($statusCode);
+
+					if ($returnStatus) {
+
+						return ($csrf ? $response->getHeaders() : $response->getBody()->getContents());
+
+					} else {
+
+						$validation['status'] = $statusCode;
+						$validation['phrase'] = $response->getReasonPhrase();
+
+						return $validation;
+					}
+
+				}
+
+			} catch (ClientException $e) {
+				
+				return false;
 			}			
 			
 		} else {
