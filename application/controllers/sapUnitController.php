@@ -108,9 +108,10 @@ class sapUnitController extends CI_Controller
 			if ($this->form_validation->run() == TRUE) {
 				
 				$params = $this->input->post('sap_resource');
+				//$params = 'Companies/BP01/Towers/OGH-001/Units';
 				unset($_POST['sap_resource']);
 
-				$ctr = 983;
+				$ctr = 1;
 
 				set_time_limit(0);
 				while(true){
@@ -121,10 +122,10 @@ class sapUnitController extends CI_Controller
 							'limit' => 50
 					]);
 
-					$assoc_resource = json_decode($resource,true);
-					$resource_length = count($assoc_resource);					
-
 					if ($resource) {
+
+						$assoc_resource = json_decode($resource,true);
+						$resource_length = count($assoc_resource);	
 
 						for ($i=0; $i < $resource_length; $i++) { 
 							
@@ -144,6 +145,7 @@ class sapUnitController extends CI_Controller
 
 								} else if($UnitParkingValue == 'PK'){
 
+									unset($_POST['unit_number']);
 									$_POST['parking_number'] = $assoc_resource[$i]['REFNO'];
 
 								} else if ($UnitParkingValue == 'UP') {

@@ -6,15 +6,15 @@ class Outbound extends CI_Controller {
     public $user_id = '';
     public $role_id = '';
 
-	public function __construct() {
+  public function __construct() {
       parent::__construct();
       $this->user_id = user('id');
       $this->role_id = user('role');
       $this->load->library('user_agent');
     }
-	public function index($data = null) {
+  public function index($data = null) {
       
-	}
+  }
 
    public function main() {
       $this->load->view('header');
@@ -283,7 +283,7 @@ class Outbound extends CI_Controller {
                         array(
                             'ticket_number' => $ticket_number,
                             'status' => 0,
-                            'assign_to' => ,
+                            'assign_to' => '',
                             'user_section' => 'HANDOVER_ASSOC',
                             'activity_status' => 0
                         )
@@ -421,21 +421,28 @@ class Outbound extends CI_Controller {
             'mobile' => $mobile,
             'message' => $message
         );
-        $data = json_encode($data_array);
+       $data = json_encode($data_array);
+       
         $curl = curl_init();
+        $url = "http://10.15.7.199/smsgateway/api/v1/sms/send";
+        $request_headers = array();
         $request_headers[] = 'Content-Type: application/json';
-        // Set some options - we are passing in a useragent too here
+        // Set some options 
         curl_setopt_array($curl, array(
-          CURLOPT_HTTPHEADER => $request_headers,
-          CURLOPT_RETURNTRANSFER  => 1,
-          CURLOPT_URL => "http://10.15.7.199/smsgateway/api/v1/sms/send",
-          CURLOPT_POST =>  1,
-          CURLOPT_POSTFIELDS => $data
+        CURLOPT_HTTPHEADER => $request_headers,
+        CURLOPT_RETURNTRANSFER  => 1,
+        CURLOPT_URL => $url,
+        CURLOPT_POST =>  1,
+        CURLOPT_POSTFIELDS => $data
                                                                                                                         
         ));
         // Send the request & save response to $resp
         $sXML = curl_exec($curl);
-        return $sXML;
+        if($sXML->transaction_id != "") {
+          return true;
+        } else {
+          return false;
+        }
     }
 
 

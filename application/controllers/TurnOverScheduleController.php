@@ -17,8 +17,9 @@ class TurnOverScheduleController extends CI_Controller
         $this->user_id = user('id');
         $this->role_id = user('role');
         $this->load->library('user_agent');
+        $this->load->model('Admin_model');
         $this->load->model('weserve_sap');
-        $this->uri = '';
+        $this->load->model('weserve_sap_units');
 
     }
 
@@ -26,20 +27,34 @@ class TurnOverScheduleController extends CI_Controller
 
     	if ($this->input->is_ajax_request()) {
     		
-    		if ($this->input->get('company') && $this->input->get('project')) {
-    			
-    			$company_code = $this->input->get('company');
-    			$project_tower_code = $this->input->get('project');
+    		if ($this->input->get('params')) {
+    			 
+                //var_dump($this->Admin_model->get_turn_over_qualifieds());exit;
 
-    			$this->uri = 'Companies/'.$company_code.'/Towers/'.$project_tower_code.'/Units';
+                $list_units = [];
+                $list_parking = [];
 
-    			$units = $this->weserve_sap->all($this->uri);
+                $where = explode(" ", $this->input->get('params'));
 
-    			var_dump($units);exit;
+                $data['units'] = $this->weserve_sap_units->where('company_code',$where[0])->where('project',$where[1])->get_all();
+
+                for ($i=0; $i < count($data['units']); $i++) { 
+                    
+                    array_push($list_units, $data['units'][$i]['unit_number']);
+                    array_push($list_parking, $data['units'][$i]['parking_number']);
+ 
+
+                }
+
+                $data['list']['unit_number'] = $list_units;
+                $data['list']['parking_number'] = $list_parking;
+                $data['success'] = 'true';
+                $data['key'] = 'autoCompleteTO';
+                $data['project_tower'] = $where[1];
 
     		} else {
 
-    			var_dump('nope');exit;
+    			
 
     		}
 
@@ -49,6 +64,21 @@ class TurnOverScheduleController extends CI_Controller
 
     		redirect('admin/schedule');
     	}
+
+    }
+
+    public function show(){
+
+        if ($this->input->is_ajax_request()) {
+            
+            $id = array('id' => $this->uri->segment(2));
+
+
+
+        } else {
+
+            redirect('admin/schedule');
+        }
 
     }    	
 }

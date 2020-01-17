@@ -6,15 +6,17 @@ class Handover extends CI_Controller {
     public $user_id = '';
     public $role_id = '';
 
-	public function __construct() {
+  public function __construct() {
       parent::__construct();
       $this->user_id = user('id');
       $this->role_id = user('role');
       $this->load->library('user_agent');
+      $this->load->model('weserve_sap');
+      $this->load->library('weserve_rush');
     }
-	public function index($data = null) {
-      
-	}
+  public function index($data = null) {
+
+  }
 
    public function main() {
       $this->load->view('header');
@@ -23,7 +25,9 @@ class Handover extends CI_Controller {
    }
 
     public function my_dashboard() {
-      
+        
+     
+
       $data = array(
           'tickets' => $this->Admin_model->get_tickets_by_assigned_to(user('id'))
       );
@@ -83,7 +87,19 @@ class Handover extends CI_Controller {
       // update tbl_units status for turnover dashboard here
       $this->Admin_model->update_status_unit_overall($ticket_details->project_code_sap, $ticket_details->runitid, 14);
 
-      echo "<script type='text/javascript'>alert('Acceptance of Unit is now completed.');</script>";
+      $url = $this->weserve_sap->CompanyProjectResource('/Units/'.$ticket_details->runitid,[
+
+          'company_code' => $ticket_details->company_code,
+          'project_code' =>  $ticket_details->project_code_sap
+
+        ]);
+        $update_sap_test = $this->weserve_sap->Update($url,'/AcceptanceDate',['DATE' => date("Ymd")]);
+
+        if($update_sap_test['phrase'] == "OK") {
+          echo "<script type='text/javascript'>alert('Acceptance of Unit and Parking is now completed.');</script>";
+        } else {
+          echo "<script type='text/javascript'>alert('Error saving the Turnover Data to SAP.');</script>";
+        }
 
       $temp_parking_flag = $this->uri->segment(4);
       if($temp_parking_flag == 'Y') {
@@ -94,9 +110,20 @@ class Handover extends CI_Controller {
       
   }
 
-  public function ticket_details() {
+   public function ticket_details() {
+    $tickets_qcd_subject;
+    $acceptance = false;
     $ticket = $this->Admin_model->get_ticket_by_id($this->uri->segment(3));
+    $acceptance_space_remove = preg_replace('/\s+/', '', $ticket->category);
+    //If the ticket has a category of acceptance it will tag as from acceptance from qcd
+    if ($acceptance_space_remove === "Acceptance"){
+        $acceptance = true;
+    }else{
+        $acceptance = false;
+    }
     $data = array(
+        'accepted' => $ticket->ticket_status,
+        'acceptance' => $acceptance,
         'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket->ticket_number, $ticket->project_code_sap),
         'ticket_details' => $this->Admin_model->get_ticket_by_id($this->uri->segment(3))
     );
@@ -104,7 +131,6 @@ class Handover extends CI_Controller {
     $this->load->view('handover_associate/ticket_details', $data);
     $this->load->view('footer');
  }
-
 
    public function buyer_details() {
     
@@ -145,7 +171,7 @@ class Handover extends CI_Controller {
     public function turnover_process() {
       $ticket = $this->Admin_model->get_ticket_by_id($this->uri->segment(3));
       $data = array(
-          'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket->ticket_number, $ticket->project_code),
+          'ticket_bind' => $this->Admin_model->get_ticket_by_schedule_and_id($ticket->ticket_number, $ticket->project_code_sap),
           'ticket_details' => $this->Admin_model->get_ticket_by_id($this->uri->segment(3))
       );
       $this->load->view('header');
@@ -372,7 +398,21 @@ class Handover extends CI_Controller {
         // update tbl_units status for turnover dashboard here
         $this->Admin_model->update_status_unit_overall($ticket_details->project_code_sap, $ticket_details->runitid, 14);
 
-        echo "<script type='text/javascript'>alert('Acceptance of Unit is now completed.');</script>";
+       $url = $this->weserve_sap->CompanyProjectResource('/Units/'.$ticket_details->runitid,[
+
+          'company_code' => $ticket_details->company_code,
+          'project_code' =>  $ticket_details->project_code_sap
+
+        ]);
+         $update_sap_test = $this->weserve_sap->Update($url,'/AcceptanceDate',['DATE' => date("Ymd")]);
+
+        if($update_sap_test['phrase'] == "OK") {
+          echo "<script type='text/javascript'>alert('Acceptance of Unit is now completed.');</script>";
+        } else {
+          echo "<script type='text/javascript'>alert('Error saving the Turnover Data to SAP.');</script>";
+        }
+
+
         $temp_parking_flag = $this->uri->segment(4);
         if($temp_parking_flag == 'Y') {
           redirect('handover/temporary_parking/'.$ticket_details->ticket_id, 'refresh');
@@ -413,7 +453,20 @@ class Handover extends CI_Controller {
         // update tbl_units status for turnover dashboard here
         $this->Admin_model->update_status_unit_overall($ticket_details->project_code_sap, $ticket_details->runitid, 14);
 
-        echo "<script type='text/javascript'>alert('Acceptance of Unit is now completed.');</script>";
+         // update to SAP turnover_date
+        $url = $this->weserve_sap->CompanyProjectResource('/Units/'.$ticket_details->runitid,[
+
+          'company_code' => $ticket_details->company_code,
+          'project_code' =>  $ticket_details->project_code_sap
+
+        ]);
+         $update_sap_test = $this->weserve_sap->Update($url,'/AcceptanceDate',['DATE' => date("Ymd")]);
+
+        if($update_sap_test['phrase'] == "OK") {
+          echo "<script type='text/javascript'>alert('Acceptance of Parking is now completed.');</script>";
+        } else {
+          echo "<script type='text/javascript'>alert('Error saving the Turnover Data to SAP.');</script>";
+        }
         $temp_parking_flag = $this->uri->segment(4);
         if($temp_parking_flag == 'Y') {
           redirect('handover/temporary_parking/'.$ticket_details->ticket_id, 'refresh');
@@ -546,21 +599,28 @@ class Handover extends CI_Controller {
             'mobile' => $mobile,
             'message' => $message
         );
-        $data = json_encode($data_array);
+       $data = json_encode($data_array);
+       
         $curl = curl_init();
+        $url = "http://10.15.7.199/smsgateway/api/v1/sms/send";
+        $request_headers = array();
         $request_headers[] = 'Content-Type: application/json';
-        // Set some options - we are passing in a useragent too here
+        // Set some options 
         curl_setopt_array($curl, array(
-          CURLOPT_HTTPHEADER => $request_headers,
-          CURLOPT_RETURNTRANSFER  => 1,
-          CURLOPT_URL => "http://10.15.7.199/smsgateway/api/v1/sms/send",
-          CURLOPT_POST =>  1,
-          CURLOPT_POSTFIELDS => $data
+        CURLOPT_HTTPHEADER => $request_headers,
+        CURLOPT_RETURNTRANSFER  => 1,
+        CURLOPT_URL => $url,
+        CURLOPT_POST =>  1,
+        CURLOPT_POSTFIELDS => $data
                                                                                                                         
         ));
         // Send the request & save response to $resp
         $sXML = curl_exec($curl);
-        return $sXML;
+        if($sXML->transaction_id != "") {
+          return true;
+        } else {
+          return false;
+        }
     }
 
 
@@ -597,6 +657,80 @@ class Handover extends CI_Controller {
           redirect('admin/my_dashboard/', 'refresh');
       }
     }
+
+    // EMIL
+     public function close_ticket(){
+    
+    $ticket_number = $this->input->post('ticket_number');
+    
+    if($ticket_number){
+      $this->Admin_model->update_acceptance_ticket($ticket_number);
+      $this->Admin_model->close_ticket($ticket_number);
+
+      $url = $this->weserve_sap->CompanyProjectResource('/Units/'.$ticket_details->runitid,[
+
+        'company_code' => $ticket_details->company_code,
+        'project_code' =>  $ticket_details->project_code_sap
+
+      ]);
+      $update_sap_test = $this->weserve_sap->Update($url,'/QCDHandOverDate',['DATE' => date("Ymd")]);
+
+      if($update_sap_test['phrase'] == "OK") {
+         echo "<script type='text/javascript'>alert('Unit has been accepted.');</script>";
+      } else {
+        echo "<script type='text/javascript'>alert('Error saving the Turnover Data to SAP.');</script>";
+      }
+
+     
+      //redirect($_SERVER['REQUEST_URI'], 'refresh'); 
+    }else{
+
+    }
+  }
+
+  public function ticket_not_accepted(){
+    $ticket_id = $this->input->post('ticket_id');
+    $ticket_number = $this->input->post('ticket_number');
+
+    $data = array(
+      'ticket_id' => $ticket_id,
+      'comment' => $this->input->post('reason'),
+      'created_by' => user('id')
+    );
+    $inserted_comment = $this->Admin_model->insert_tickets_comment($data);
+
+      /*
+          Added: Generate RUSH Ticket
+          Author: Ben Zarmaynine E. Obra
+          Date: 01-16-19
+
+      */
+
+         $rush =  $this->weserve_rush->rushPOST('PostRequestFormUsingXmlString',[
+              'PART_CD' => RUSH_WESERVE_PART_CD,
+              'LINE_NUM' => '1',
+              'TO_STAT' => 'test_stat',
+              'DUI' => 'test_DUI',
+              'PL_DTLS' => 'test_DTLS',
+              'WTYP' => 'test_WTYP'
+
+          ]);
+
+
+      //End    
+
+    echo "<script type='text/javascript'>alert('Changes has been save.');</script>";
+    if($inserted_comment){
+
+      $this->Admin_model->update_acceptance_ticket($ticket_number);
+      $this->Admin_model->close_ticket($ticket_number);
+
+
+    }
+
+
+    redirect('handover/ticket_details/'.$ticket_id, 'refresh');
+  }
 
     
 }

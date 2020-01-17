@@ -124,12 +124,12 @@ class sapProjectController extends CI_Controller
 				
 				$sap_params = $this->input->post('sap_resource');			
 				$resource = $this->weserve_sap->all($this->input->post('sap_resource'));
-				
+	
 				if ($resource) {
 				
 					$assoc_resource = json_decode($resource,true);
 
-					$resource_length = 1;
+					$resource_length = count($assoc_resource);
 					$ctr = 0;
 
 					for ($i=0; $i < $resource_length ; $i++) { 

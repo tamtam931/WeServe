@@ -116,7 +116,7 @@ class sapAuthController extends CI_Controller
 			$this->form_validation->set_rules('sap_scheme','SAP Protocol','required|trim|in_list[http,https]');
 			$this->form_validation->set_rules('sap_domain','SAP Domain','required|trim');
 			$this->form_validation->set_rules('sap_base','SAP base URI','required|trim');
-			$this->form_validation->set_rules('auth_cookie','SAP Session Cookie','required|trim');
+			$this->form_validation->set_rules('sap_client','SAP Client Code','required|trim|integer');
 			$this->form_validation->set_error_delimiters('<p class="text-danger">','</p>');
 
 			if ($this->form_validation->run() == TRUE) {
@@ -204,7 +204,7 @@ class sapAuthController extends CI_Controller
 			$this->form_validation->set_rules('sap_scheme','SAP Protocol','required|trim|in_list[http,https]');
 			$this->form_validation->set_rules('sap_domain','SAP Domain','required|trim');
 			$this->form_validation->set_rules('sap_base','SAP base URI','required|trim');
-			$this->form_validation->set_rules('auth_cookie','SAP Session Cookie','required|trim');
+			$this->form_validation->set_rules('sap_client','SAP Client Code','required|trim|integer');
 			$this->form_validation->set_error_delimiters('<p class="text-danger">','</p>');
 
 			if ($this->form_validation->run() == TRUE) {
