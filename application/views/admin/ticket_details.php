@@ -8,6 +8,7 @@
     	$customer_name = array();
     	$unit_type = array();
     	$ticket_type = "";
+
   	 if($ticket_bind) : 
     	
     	foreach($ticket_bind as $bind):
@@ -19,8 +20,17 @@
     		if($bind->parking_number) {array_push($parking, $bind->parking_number); }
     	endforeach;
 
-    	
-    	if($unit_number && empty($parking)) {
+    else:
+    	$unit2 = $ticket_details->unit_number . $ticket_details->unit_desc;
+    	$customer_number = array($ticket_details->customer_number);
+    	$unit_number = array($unit2);
+    	$parking = array($ticket_details->parking_number);
+    	$customer_name = array($ticket_details->customer_name);
+    	$unit_type = array($ticket_details->unit_type);
+
+    endif; 
+
+    if($unit_number && empty($parking)) {
     		// UNIT ONLY
     		$ticket_type = 'U';
     	} else if (empty($unit_number) && $parking) {
@@ -30,8 +40,7 @@
     		// UNIT AND PRKING
     		$ticket_type = 'UP';
     	}
-    	
-    endif; ?>
+    ?>
   	<div class="row">
 		<div class= "col-md-12">
 	  		<table class="table" id="tickets_table">
@@ -79,7 +88,7 @@
 				    	<div class="">
 				    		<?php $selected_sched = $this->Admin_model->get_schedules_by_ticket_number($ticket_details->ticket_number); ?>
 				    		<b>Turnover Schedule: </b>
-				    		<?= date("F d, Y H:i A",strtotime($selected_sched->schedule));?>
+				    		<?php if($selected_sched) { echo date("F d, Y H:i A",strtotime($selected_sched->schedule)); }?>
 				    	</div>
 				    </p>
 				      

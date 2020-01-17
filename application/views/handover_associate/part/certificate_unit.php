@@ -10,6 +10,11 @@
 	    		$unit_number .= $bind->unit_number . $bind->unit_desc . ' ,';
 	    		$parking .= $bind->parking_number . ' ,';
 	    	endforeach;
+
+	    else:
+	    	$customer_number = $ticket_details->customer_number;
+	    	$unit_number =$ticket_details->unit_number . $ticket_details->unit_desc;
+	    	$parking = $ticket_details->parking_number;
 	    endif; ?>
 		<div class="col-md-12" style="padding-top: 30px;">
 			This is to certify that <u><?= $ticket_details->customer_name; ?></u>has purchased the unit substantially described below:

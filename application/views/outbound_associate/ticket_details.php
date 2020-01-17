@@ -8,6 +8,7 @@
     	$customer_name = array();
     	$unit_type = array();
     	$ticket_type = "";
+
   	 if($ticket_bind) : 
     	
     	foreach($ticket_bind as $bind):
@@ -20,7 +21,18 @@
     	endforeach;
 
     	
-    	if($unit_number && empty($parking)) {
+    	
+    else:
+    	$unit2 = $ticket_details->unit_number . $ticket_details->unit_desc;
+    	$customer_number = array($ticket_details->customer_number);
+    	$unit_number = array($unit2);
+    	$parking = array($ticket_details->parking_number);
+    	$customer_name = array($ticket_details->customer_name);
+    	$unit_type = array($ticket_details->unit_type);
+
+    endif; 
+
+    if($unit_number && empty($parking)) {
     		// UNIT ONLY
     		$ticket_type = 'U';
     	} else if (empty($unit_number) && $parking) {
@@ -30,8 +42,7 @@
     		// UNIT AND PRKING
     		$ticket_type = 'UP';
     	}
-    	
-    endif; ?>
+    ?>
   	<div class="row">
 		<div class= "col-md-12">
 	  		<table class="table" id="tickets_table">
@@ -80,7 +91,7 @@
 				    	</div>
 				    </p>
 				    <a href="<?= base_url('outbound/schedule_specific/'.$ticket_details->customer_number); ?>" class="btn btn-dark">Turnover Schedule</a>
-				    <button type="button" class="btn btn-dark" data-toggle="modal" data-target="#callout_modal">FOR CALL-OUT</button>
+				    <button type="button" class="btn btn-dark" onclick="call_pabx('1002',<?= $ticket_details->ticket_id ?>)" >FOR CALL-OUT</button>
 				  </div>
 				</div>
 		  	</div>
@@ -98,8 +109,8 @@
 		                	Contact Number: <?= $ticket_details->mobile_number; ?>
 		                </div>
 		               <div class="modal-footer">
-					        <!-- <button type="submit" class="btn btn-dark" data-toggle="modal" data-target="#call_success_confirm">Answer</button> -->
-					          <a href="<?= base_url('sap/customer/test/call?extension=.1002.&number=1000&ticket_id='.$ticket_details->ticket_id); ?>" class="btn btn-dark">Call</a>
+					        <button type="submit" class="btn btn-dark" data-toggle="modal" data-target="#call_success_confirm">Answer</button>
+					        <!--   <a href="<?= base_url('sap/customer/test/call?extension=.1002.&number=1000&ticket_id='.$ticket_details->ticket_id); ?>" class="btn btn-dark">Answer</a> -->
 					        <button type="button" class="btn btn-outline-dark" data-toggle="modal" data-target="#call_noanswer_confirm">No Answer</button>
 					     </div>
 		            </div>
@@ -280,3 +291,36 @@
 
   	</div>
   </div>
+
+  <script type="text/javascript">
+  	
+ function call_pabx(extension_number, ticket_id){
+ 	//sap/customer/test/call?
+	$.ajax({
+        type: "GET",
+        enctype: 'multipart/form-data',
+        url: "<?= base_url('sap/customer/test/call'); ?>",
+        data: {
+        	extension: extension_number,
+        	ticket_id: ticket_id
+        },
+        processData: false,
+        contentType: false,
+        cache: false,
+        success: function (data) {
+            console.log("Call using PABX.. ", data);
+            $('#callout_modal').modal('show');
+        },
+        error: function (e) {
+        	alert('Error ..');
+
+        },beforeSend:function(){
+			$('.hidden-loader').show();
+		},
+		complete:function(){
+			$('.hidden-loader').hide();
+		}
+    });
+}
+
+  </script>

@@ -8,35 +8,75 @@
 	  			<div class="ht-tm-element card bg-primary text-white mb-3 text-center">
 				  <div class="card-body">
 				    <h3 class="card-title"><span class="fa fa-folder-open"></span></h3>
-				    <p class="card-text">Open <span class="badge badge-warning badge-pill">1</span></p>
+				    <p class="card-text">Open 
+				    	<span class="badge badge-warning badge-pill">
+		    				<?php $data = $this->Admin_model->get_ticket_status_by_role_user_id('INBOUND_ASSOC', user('id'), 0); 
+		    					if($data) {
+		    						echo count($data);
+		    					} else { echo 0; }
+		    				?>
+		    			</span>
+		    		</p>
 				  </div>
 				</div>
 
 	  			<div class="ht-tm-element card bg-primary text-white mb-3 text-center">
 				  <div class="card-body">
 				    <h3 class="card-title"><span class="fa fa-exclamation-triangle"></span></h3>
-				    <p class="card-text">Overdue <span class="badge badge-warning badge-pill">0</span></p>
+				    <p class="card-text">Overdue 
+				    	<span class="badge badge-warning badge-pill">
+		    				<?php $data = $this->Admin_model->get_ticket_overdue_by_role_user_id_status('INBOUND_ASSOC', user('id')); 
+		    					if($data) {
+		    						echo count($data);
+		    					} else { echo 0; }
+		    				?>
+		    			</span>
+				    </p>
 				  </div>
 				</div>
 	
 	  			<div class="ht-tm-element card bg-primary text-white mb-3 text-center">
 				  <div class="card-body">
 				    <h3 class="card-title"><span class="fa fa-clock"></span></h3>
-				    <p class="card-text">Due Today <span class="badge badge-warning badge-pill">0</span></p>
+				    <p class="card-text">Due Today 
+				    	<span class="badge badge-warning badge-pill">
+		    				<?php $data = $this->Admin_model->get_ticket_due_today_by_role_user_id_status('INBOUND_ASSOC', user('id')); 
+		    					if($data) {
+		    						echo count($data);
+		    					} else { echo 0; }
+		    				?>
+		    			</span>
+				    </p>
 				  </div>
 				</div>
 
 	  			<div class="ht-tm-element card bg-primary text-white mb-3 text-center">
 				  <div class="card-body">
 				    <h3 class="card-title"><span class="fa fa-check"></span></h3>
-				    <p class="card-text">Complete Activity <span class="badge badge-warning badge-pill">50</span></p>
+				    <p class="card-text">Complete Activity
+				    	<span class="badge badge-warning badge-pill">
+		    				<?php $data = $this->Admin_model->get_ticket_complete_activity_by_role_user_id_status('INBOUND_ASSOC', user('id')); 
+		    					if($data) {
+		    						echo count($data);
+		    					} else { echo 0; }
+		    				?>
+		    			</span>
+				    </p>
 				  </div>
 				</div>
 	  	
 	  			<div class="ht-tm-element card bg-primary text-white mb-3 text-center">
 				  <div class="card-body">
 				    <h3 class="card-title"><span class="fa fa-unlock-alt"></span></h3>
-				    <p class="card-text">Closed <span class="badge badge-warning badge-pill">40</span></p>
+				    <p class="card-text">Closed
+				    	<span class="badge badge-warning badge-pill">
+		    				<?php $data = $this->Admin_model->get_ticket_status_by_role_user_id('INBOUND_ASSOC', user('id'), 1); 
+		    					if($data) {
+		    						echo count($data);
+		    					} else { echo 0; }
+		    				?>
+		    			</span>
+				    </p>
 				  </div>
 				</div>
 
@@ -52,16 +92,40 @@
 						    <p class="card-text">
 						    	<ul class="list-group mb-3">
 						    		<li  class="list-group-item d-flex justify-content-between lh-condensed" style="padding:5px;">Open 
-						    			<span class="badge badge-primary badge-pill">2</span>
+						    			<span class="badge badge-primary badge-pill">
+						    				<?php $data = $this->Admin_model->get_ticket_status_by_role_user_id('INBOUND_ASSOC', user('id'), 0); 
+						    					if($data) {
+						    						echo count($data);
+						    					} else { echo 0; }
+						    				?>
+						    			</span>
 						    		</li>
 						    		<li  class="list-group-item d-flex justify-content-between lh-condensed" style="padding:5px;">Due Today 
-						    			<span class="badge badge-primary badge-pill">2</span>
+						    			<span class="badge badge-primary badge-pill">
+						    				<?php $data = $this->Admin_model->get_ticket_due_today_by_role_user_id_status('INBOUND_ASSOC', user('id')); 
+						    					if($data) {
+						    						echo count($data);
+						    					} else { echo 0; }
+						    				?>
+						    			</span>
 						    		</li>
 						    		<li  class="list-group-item d-flex justify-content-between lh-condensed" style="padding:5px;">Complete Activity 
-						    			<span class="badge badge-primary badge-pill">20</span>
+						    			<span class="badge badge-primary badge-pill">
+						    				<?php $data = $this->Admin_model->get_ticket_complete_activity_by_role_user_id_status('INBOUND_ASSOC', user('id')); 
+						    					if($data) {
+						    						echo count($data);
+						    					} else { echo 0; }
+						    				?>
+						    			</span>
 						    		</li>
 						    		<li  class="list-group-item d-flex justify-content-between lh-condensed" style="padding:5px;">Closed 
-						    			<span class="badge badge-primary badge-pill">10</span>
+						    			<span class="badge badge-primary badge-pill">
+						    				<?php $data = $this->Admin_model->get_ticket_status_by_role_user_id('INBOUND_ASSOC', user('id'), 1); 
+						    					if($data) {
+						    						echo count($data);
+						    					} else { echo 0; }
+						    				?>
+						    			</span>
 						    		</li>
 						    	</ul>
 						    </p>
@@ -169,7 +233,7 @@
 					      <th scope="row"> <?= $ticket->lastname; ?>, <?= $ticket->firstname; ?></th>
 					      <th scope="row"><?= $ticket->category; ?></th>
 					      <th scope="row"><?= $ticket->subject; ?></th>
-					      <th scope="row"><?= $ticket->status; ?></th>
+					      <th scope="row"><?= $ticket->status_description;; ?></th>
 					      <th scope="row"><?= $ticket->date_created; ?></th>
 					      <th scope="row"><?= $ticket->date_assigned; ?></th>
 					      <th scope="row">0</th>

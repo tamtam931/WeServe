@@ -12,7 +12,7 @@
 		</div>		
 	</div>
 	<p class="font-weight-bold mb-1">Project Description</p>
-	<p><?= $get['project_description'] ?></p>	
+	<p><?= $get['project'] ?></p>	
 	<div class="row">
 		<div class="col-12 col-sm-6 col-md-6 col-lg-6">
 			<p class="font-weight-bold mb-1">Date Created</p>

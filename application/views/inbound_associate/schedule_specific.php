@@ -10,13 +10,13 @@
   	<div class="row">
   		<div class="col-md-12">
 	    	<div id="turnover_schedule">
-		    	<form action="<?= base_url('inbound/add_schedule_available'); ?>" method="post" role="form" class="needs-validation">
+		    	<form action="<?= base_url('ScheduleController/add_schedule_available'); ?>" method="post" role="form" class="needs-validation">
 		    		<input type="hidden" class="form-control" id="logged_user" name = "logged_user" value="<?= user('id'); ?>">
 		    		<input type="hidden" class="form-control" id="customer_number" name = "customer_number" value="<?= $detail->customer_number?>">
 					<input type="hidden" class="form-control" id="project" name = "project" value="<?= $detail->project_code_sap?>">
-					<input type="hidden" class="form-control" id="project" name = "project" value="<?= $detail->project_code_sap?>">
 	        		<input type="hidden" class="form-control" id="assign_to" name = "assign_to" value="">
 	        		<input type="hidden" class="form-control" id="ticket_id" name = "ticket_id" value="<?= $ticket_id ?>">
+					<input type="hidden" class="form-control" id="time" name = "time" value="">
 					<div class="row">
 	        			<div class="col-md-4 mb-3">
 				            <label for="property">Property</label>
@@ -101,30 +101,46 @@ function show_calendar(project) {
 	        right: ''
 	         // weekends: false
 	    },
-
+		//For Disabling the current month on full
+		viewRender: function(currentView){
+        var minDate = moment();
+        // Past
+        if (minDate >= currentView.start && minDate <= currentView.end) {
+            $(".fc-prev-button").prop('disabled', true); 
+            $(".fc-prev-button").addClass('fc-state-disabled'); 
+        }
+        else {
+            $(".fc-prev-button").removeClass('fc-state-disabled'); 
+            $(".fc-prev-button").prop('disabled', false); 
+			}
+		},
 	    dayClick:  function(date, jsEvent, view) {
 	    	// parent.location.hash = moment(date).format('YYYY-MM-DD');
-
-	    	 var checkDay = new Date( moment(date, 'DD.MM.YYYY').format('dddd, MMMM D, YYYY'));
+	    	var checkDay = new Date( moment(date, 'DD.MM.YYYY').format('dddd, MMMM D, YYYY'));
     		if (checkDay.getDay() != 0) { // weekdays to saturday only
-    			dd = moment(date, 'DD.MM.YYYY').format('dddd, MMMM D, YYYY');
-	    	
-		        $('#modalTitle').html(dd);
-		        $('#selected_dt').val(moment(date).format('YYYY-MM-DD'));
-		        $.ajax({
-			      type: 'GET',
-			      url: "<?php echo base_url('admin/schedule_datetime'); ?>",
-			      data: {
-			      	dt: moment(date).format('YYYY-MM-DD')
-			  		},
-			      cache: false,
-			      success: function(data){
-			        calendar_ajax(data, project);
-			        $('#calendar_details').modal();
+    			var selected_date = moment(date, 'DD.MM.YYYY').format('DD.MM.YYYY');
+				var date_today = moment().format('DD.MM.YYYY');
 
-			      }
-			    });
-		        return false;
+				if (selected_date >= date_today){
+					dd = moment(date, 'DD.MM.YYYY').format('dddd, MMMM D, YYYY');
+				
+					$('#modalTitle').html(dd);
+					$('#selected_dt').val(moment(date).format('YYYY-MM-DD'));
+					$.ajax({
+					type: 'GET',
+					url: "<?php echo base_url('admin/schedule_datetime'); ?>",
+					data: {
+						dt: moment(date).format('YYYY-MM-DD')
+						},
+					cache: false,
+					success: function(data){
+						calendar_ajax(data, project);
+						$('#calendar_details').modal();
+
+					}
+					});
+					return false;
+				}
     		}
 	
 	    },
@@ -185,7 +201,7 @@ function check_availability(available,formData) {
 	$('#time').val(selectedtime);
 	$.ajax({
 		type: 'GET',
-		url: "<?php echo base_url('inbound/onclickChange'); ?>",
+		url: "<?php echo base_url('ScheduleController/onclickChange'); ?>",
 		data: {
 			dt: moment($('#selected_dt').val()).format('YYYY-MM-DD'),
 			project: $('#property').val(),
@@ -206,6 +222,9 @@ function check_availability(available,formData) {
 				$('#modalBtns').show();
 				$('.alert').remove();
 				$('#modalBodySpecific').append('<div class="alert alert-success alert-dismissible fade show" role="alert" id="modal_message"> <span id="modal_text">Slot will be reserved, do you wish to continue? </span><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'); 
+			}else if(data.setup == 'true'){
+				$('#modalBtns').hide();
+				$('#modalBodySpecific').append('<div class="alert alert-danger alert-dismissible fade show" role="alert" id="modal_message"> <span id="modal_text">No maintenance table for this project.</span><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
 			}else{
 					// not available
 				$('#modalBtns').hide();
@@ -213,10 +232,11 @@ function check_availability(available,formData) {
 				// save first option date
 				console.log(formData);
 				$ajaxData = $.ajax({
-					url: "<?= base_url('admin/add_schedule_logs') ?>",
+					url: "<?= base_url('ScheduleController/add_schedule_logs') ?>",
 					method: "POST",
 					data: {
 						data : formData ,
+						assign_to : $('#assign_to').val() ,
 						customer_number : $('#customer_number').val() 
 					},
 					success:function(data){

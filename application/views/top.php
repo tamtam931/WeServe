@@ -9,7 +9,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <ul class="nav navbar-nav">
-              <?php if(user('position') == 0 || user('position') <= 5 ): ?>
+              <?php if(user('position') == 0): ?>
                <!-- <li><a href="#" class="pl-md-0 p-3 text-white">Home</a></li> -->
                 <li><a href="<?= base_url('admin/my_dashboard') ?>" class="pl-md-0 p-3 text-white">My Dashboard</a></li>
                 <li><a href="<?= base_url('admin/dashboard') ?>" class="p-3 text-decoration-none text-white">Turnover Dashboard</a></li>
@@ -24,18 +24,18 @@
                     <?php endif; ?> 
                   </ul>              
                 </li>
-            <?php elseif(user('position') == 6): //inbound associate ?>
+            <?php elseif(user('position') == 6 || user('position') == 2): //inbound associate ?>
               <a href="#" class="pl-md-0 p-3 text-white">Home</a>
               <a href="<?= base_url('inbound/my_dashboard') ?>" class="pl-md-0 p-3 text-white">My Dashboard</a>
               <a href="<?= base_url('inbound/dashboard') ?>" class="p-3 text-decoration-none text-white">Turnover Dashboard</a>
               <a href="<?= base_url('inbound/schedule') ?>" class="p-3 text-decoration-none text-white">Turnover Schedule</a>
 
-            <?php elseif(user('position') == 7): // outbound associate?>
+            <?php elseif(user('position') == 7 || user('position') == 3): // outbound associate?>
               <a href="#" class="pl-md-0 p-3 text-white">Home</a>
               <a href="<?= base_url('outbound/my_dashboard') ?>" class="pl-md-0 p-3 text-white">My Dashboard</a>
               <a href="<?= base_url('outbound/dashboard') ?>" class="p-3 text-decoration-none text-white">Turnover Dashboard</a>
 
-             <?php elseif(user('position') == 10): // handover associate?>
+             <?php elseif(user('position') == 10 || user('position') == 5): // handover associate?>
               <a href="#" class="pl-md-0 p-3 text-white">Home</a>
               <a href="<?= base_url('handover/my_dashboard') ?>" class="pl-md-0 p-3 text-white">My Dashboard</a>
               <a href="<?= base_url('handover/dashboard') ?>" class="p-3 text-decoration-none text-white">Turnover Dashboard</a>

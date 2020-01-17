@@ -183,7 +183,7 @@
 					      <th scope="row"> <?= $ticket->lastname; ?>, <?= $ticket->firstname; ?></th>
 					      <th scope="row"><?= $ticket->category; ?></th>
 					      <th scope="row"><?= $ticket->subject; ?></th>
-					      <th scope="row"><?= $ticket->status; ?></th>
+					      <th scope="row"><?= $ticket->status_description;; ?></th>
 					      <th scope="row"><?= $ticket->date_created; ?></th>
 					      <th scope="row"><?= $ticket->date_assigned; ?></th>
 					      <th scope="row">0</th>

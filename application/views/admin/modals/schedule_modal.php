@@ -17,12 +17,6 @@
     <label class="custom-control-label" for="2pm"> 2PM</label>
     <span style="color:red;font-weight: 600;" id="for2"><?= $reserved3; ?></span><br>
   </div>
-   <!-- <div class="custom-control custom-radio">
-    <input id="4pm" name="schedule_time" data-input="<?= $avail4 ?>" value="16" type="radio" class="custom-control-input"
-    required>
-    <label class="custom-control-label" for="4pm"> 4PM</label>
-    <span style="color:red;font-weight: 600;"><?= $reserved4; ?></span><br>
-  </div> -->
  
 </div>
 
@@ -34,6 +28,5 @@
     formData = form.serialize();
 
     check_availability(avail,formData);
-    console.log(formData);
   });
 </script>

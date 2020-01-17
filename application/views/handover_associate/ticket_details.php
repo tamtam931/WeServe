@@ -8,6 +8,7 @@
     	$customer_name = array();
     	$unit_type = array();
     	$ticket_type = "";
+
   	 if($ticket_bind) : 
     	
     	foreach($ticket_bind as $bind):
@@ -20,7 +21,18 @@
     	endforeach;
 
     	
-    	if($unit_number && empty($parking)) {
+    	
+    else:
+    	$unit2 = $ticket_details->unit_number . $ticket_details->unit_desc;
+    	$customer_number = array($ticket_details->customer_number);
+    	$unit_number = array($unit2);
+    	$parking = array($ticket_details->parking_number);
+    	$customer_name = array($ticket_details->customer_name);
+    	$unit_type = array($ticket_details->unit_type);
+
+    endif; 
+
+    if($unit_number && empty($parking)) {
     		// UNIT ONLY
     		$ticket_type = 'U';
     	} else if (empty($unit_number) && $parking) {
@@ -30,8 +42,7 @@
     		// UNIT AND PRKING
     		$ticket_type = 'UP';
     	}
-    	
-    endif; ?>
+    ?>
   	<div class="row">
 		<div class= "col-md-12">
 	  		<table class="table" id="tickets_table">
@@ -78,13 +89,13 @@
 				    	</div>
 				    	<div class="">
 				    		<?php $selected_sched = $this->Admin_model->get_schedules_by_ticket_number($ticket_details->ticket_number); ?>
-				    		<b>Turnover Schedule: </b>
-				    		<?= date("F d, Y H:i A",strtotime($selected_sched->schedule));?>
+					    	<b>Turnover Schedule: </b>
+					    	<?php if($selected_sched) { echo date("F d, Y H:i A",strtotime($selected_sched->schedule)); }?>
 				    	</div>
 				    </p>
-				      <a href="<?= base_url('handover/turnover_process/'.$ticket_details->ticket_id.'/'.$ticket_type); ?>" class="btn btn-dark">Turnover Process</a>
+					<a style="<?php if($accepted === '1'){echo "display: none;";}else{echo "";} ?>" <?php if($acceptance === true){ echo 'data-toggle="modal" . " " . data-target="#confirmation_accepted"'; } ?> href="<?php if($acceptance === true){echo "#";}else{echo base_url('handover/turnover_process/'.$ticket_details->ticket_id.'/'.$ticket_type);} ?>" class="btn btn-dark"><?php if($acceptance === true){echo "Accept"; }else{echo "Turnover Process";} ?></a>
 
-					<button type="submit" class="btn btn-dark" data-toggle="modal" data-target="#no_show_confirm">No Show</button>
+					<button style="<?php if($accepted === '1'){echo "display: none;";}else{echo "";} ?>" type="submit" class="btn btn-dark" data-toggle="modal" data-target="<?php if($acceptance === true){ echo '#confirmation_not_accepted'; }else{echo '#no_show_confirm';} ?>"><?php if($acceptance === true){ echo 'Not Accepted'; }else{echo 'No Show';} ?></button>
 				  </div>
 				</div>
 		  	</div>
@@ -115,6 +126,115 @@
 		        </div>
 		    </div>
 		    <!-- END OF NO SHOW CONFIRM MODAL -->
+			
+ 		<!-- ACCEPT Confirmation Modal -->
+ 			<div class="modal fade" id="confirmation_accepted" tabindex="-1" role="dialog" aria-hidden="true">
+				  <div class="modal-dialog modal-dialog-centered" role="document">
+				    <div class="modal-content">
+				      <div class="modal-header">
+				        <h5 class="modal-title">Confirmation</h5>
+				        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				          <span aria-hidden="true">&times;</span>
+				        </button>
+				      </div>
+				      	<form action="<?= base_url('handover/close_ticket'); ?>" method="post" role="form">
+						<input type="hidden" class="form-control" id="ticket_type" name = "ticket_type" value="UP">
+			            <input type="hidden" class="form-control" id="ticket_id" name = "ticket_id" value="27">
+			            <input type="hidden" class="form-control" id="ticket_number" name = "ticket_number" value="BCR-2019-000111">
+			            <input type="hidden" class="form-control" id="buyer_email" name = "buyer_email" value="elsucgang@federalland.ph">
+			            <input type="hidden" class="form-control" id="buyer_mobile" name = "buyer_mobile" value="">
+				      	<input type="hidden" class="form-control" id="">
+					      <div class="modal-body">
+							  	Unit will be accepted, do you wish to continue?
+					      </div>
+					      <div class="modal-footer">
+					        <button type="submit" class="btn btn-primary">Yes</button>
+					        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+					      </div>
+				  		</form>
+				    </div>
+				  </div>
+			</div>
+			<!-- End of ACCEPT Confirmation Modal -->
+
+			 <!-- NOT ACCEPT Confirmation Modal -->
+			 <div class="modal fade" id="confirmation_not_accepted" tabindex="-1" role="dialog" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+					<h5 class="modal-title">Reason for not acceptance of unit</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					</div>
+					<form action="<?= base_url('handover/ticket_not_accepted'); ?>" method="post" role="form">
+						<div class="modal-body">
+							<input type="hidden" class="form-control" id="modal_id" name="modal_id" value="primary_modal">
+							<input type="hidden" class="form-control" id="ticket_id" name = "ticket_id" value="<?php echo $this->uri->segment(3); ?>">
+							<input type="hidden" class="form-control" id="ticket_number" name = "ticket_number" value="BCR-2019-000111">
+							<textarea placeholder="Reason for not accepting the unit" class="form-control" rows="5" id="reason" name="reason" required></textarea>
+						</div>
+						<div class="modal-footer">
+						<button type="submit" class="btn btn-primary">Save</button>
+						<button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#confirmation_message">Cancel</button>
+						</div>
+					</form>
+				</div>
+				</div>
+			</div>
+			<!-- End of NOT ACCEPT Confirmation Modal -->
+
+			 <!-- Confirmation Modal -->
+			 <div class="modal fade" id="confirmation_message" tabindex="-1" role="dialog" aria-hidden="true">
+				  <div class="modal-dialog modal-dialog-centered" role="document">
+				    <div class="modal-content">
+				      <div class="modal-header">
+				        <h5 class="modal-title">Confirmation</h5>
+				        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				          <span aria-hidden="true">&times;</span>
+				        </button>
+				      </div>
+				      	<form method="post" role="form">
+				      	<input type="hidden" class="form-control" id="">
+					      <div class="modal-body">
+							  Changes made will not be saved, do you wish to continue? 
+					      </div>
+					      <div class="modal-footer">
+					        <button type="submit" class="btn btn-primary">Yes</button>
+					        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+					      </div>
+				  		</form>
+				    </div>
+				  </div>
+			</div>
+			<!-- End of Confirmation Modal -->
+			
+			<!-- Confirmation Modal Saving-->
+			<div class="modal fade" id="confirmation_message_saving" tabindex="-1" role="dialog" aria-hidden="true">
+				  <div class="modal-dialog modal-dialog-centered" role="document">
+				    <div class="modal-content">
+				      <div class="modal-header">
+				        <h5 class="modal-title">Confirmation</h5>
+				        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				          <span aria-hidden="true">&times;</span>
+				        </button>
+				      </div>
+				      	<form action="<?= base_url('handover/ticket_not_accepted'); ?>" method="post" role="form">
+				      	<input type="hidden" class="form-control" id="">
+					      <div class="modal-body">
+						 	 <input type="hidden" class="form-control" id="modal_id" name="modal_id" value="final_modal">
+								 Unit will not be accepted, do you wish to continue?
+					      </div>
+					      <div class="modal-footer">
+					        <button type="submit" class="btn btn-primary">Yes</button>
+					        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+					      </div>
+				  		</form>
+				    </div>
+				  </div>
+			</div>
+			<!-- End of Confirmation Modal -->
+
 
 		  	<div class= "col-md-12">
 		  		<div class="card border-primary mb-3">

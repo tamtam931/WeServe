@@ -9,7 +9,8 @@ border: 1px solid black;
 <?php $count = 0; ?>
 <div class="container py-5 mb5">
   <h3 class="mb-3">TURN OVER PROCESS</h3>
-    <?php 
+    <?php
+
     if($ticket_bind) : 
 
     	$customer_number = array();
@@ -19,10 +20,18 @@ border: 1px solid black;
     	foreach($ticket_bind as $bind):
     		$unit = $bind->unit_number . $bind->unit_desc;
     		array_push($customer_number, $bind->customer_number);
-    		array_push($unit_number, $unit);;
+    		array_push($unit_number, $unit);
     		array_push($parking_number, $bind->parking_number);
     		array_push($unit_type, $bind->unit_type_desc);
     	endforeach;
+    
+     else:
+    	$unit2 = $ticket_details->unit_number . $ticket_details->unit_desc;
+    	$customer_number = array($ticket_details->customer_number);
+    	$unit_number = array($unit2);
+    	$parking_number = array($ticket_details->parking_number);
+    	$customer_name = array($ticket_details->customer_name);
+    	$unit_type = array($ticket_details->unit_type);
     endif; ?>
   	<div class="row">
   		<div class="col-md-12">
@@ -412,7 +421,7 @@ border: 1px solid black;
 			      <div class="modal-footer">
 			        <button type="button" data-dismiss="modal" data-toggle="modal" data-target="#acceptance_signature" class="btn-accepted btn btn-primary">Yes</button>
 
-			        <button type="button" onclick="not_accepted_punchlist('<?= $ticket_details->project_code_sap ?>','<?= $ticket_details->runitid ?>')" class="btn btn-secondary">No</button>
+			        <button type="button" onclick="not_accepted_punchlist('<?= $ticket_details->project_code_sap ?>','<?= $ticket_details->runitid ?>','<?= $ticket_details->ticket_number ?>')" class="btn btn-secondary">No</button>
 			      </div>
 			    </div>
 			  </div>

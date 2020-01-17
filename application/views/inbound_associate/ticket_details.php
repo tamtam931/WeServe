@@ -1,13 +1,14 @@
 <?= $this->load->view('top', '', TRUE) ?>
 <div class="container py-5 mb5">
   <h3 class="mb-3">TICKET DETAILS</h3>
-   <?php  
+   	 <?php  
   	 	$customer_number = array();
     	$unit_number = array();
     	$parking = array();
     	$customer_name = array();
     	$unit_type = array();
     	$ticket_type = "";
+
   	 if($ticket_bind) : 
     	
     	foreach($ticket_bind as $bind):
@@ -20,7 +21,18 @@
     	endforeach;
 
     	
-    	if($unit_number && empty($parking)) {
+    	
+    else:
+    	$unit2 = $ticket_details->unit_number . $ticket_details->unit_desc;
+    	$customer_number = array($ticket_details->customer_number);
+    	$unit_number = array($unit2);
+    	$parking = array($ticket_details->parking_number);
+    	$customer_name = array($ticket_details->customer_name);
+    	$unit_type = array($ticket_details->unit_type);
+
+    endif; 
+
+    if($unit_number && empty($parking)) {
     		// UNIT ONLY
     		$ticket_type = 'U';
     	} else if (empty($unit_number) && $parking) {
@@ -30,8 +42,7 @@
     		// UNIT AND PRKING
     		$ticket_type = 'UP';
     	}
-    	
-    endif; ?>
+    ?>
   	<div class="row">
 		<div class= "col-md-12">
 	  		<table class="table" id="tickets_table">
@@ -75,8 +86,8 @@
 				    	</div>
 				    	<div class="">
 				    		<?php $selected_sched = $this->Admin_model->get_schedules_by_ticket_number($ticket_details->ticket_number); ?>
-				    		<b>Turnover Schedule: </b>
-				    		<?= date("F d, Y H:i A",strtotime($selected_sched->schedule));?>
+					    		<b>Turnover Schedule: </b>
+					    		<?php if($selected_sched) { echo date("F d, Y H:i A",strtotime($selected_sched->schedule)); }?>
 				    	</div>
 				    </p>
 				<!--     <a href="<?= base_url('admin/turnover_process/'.$ticket_details->ticket_id); ?>" class="btn btn-dark">Turnover Process</a> -->

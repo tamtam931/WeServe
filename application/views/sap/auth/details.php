@@ -29,6 +29,8 @@
 	<center><a href="<?= base_url('sap/auth/create') ?>"><button class="check_auth btn btn-warning btn-sm">Check Authentcation</button></a></center>
 	<div class="form-group">
 
+		<?= form_label('SAP Client Code', 'sap_client') ?>
+		<?= form_input("sap_client",$config['sap_client'],['id' => 'sap_client','class' => 'form-control','placeholder' => 'Client Code for Versioning']); ?>
 		<?= form_hidden("auth_cookie",$config['auth_cookie'],['id' => 'auth_cookie','class' => 'form-control','placeholder' => 'Cookie Session from Credentials','readonly' => 'readonly']); ?>		
 	</div>
 	<hr>	

@@ -11,7 +11,7 @@
 		    	<form action="<?= base_url('default_user/add_schedule_available'); ?>" method="post" role="form" class="needs-validation">
 		    		<input type="hidden" class="form-control" id="logged_user" name = "logged_user" value="<?= user('id'); ?>">
 	        		<input type="hidden" class="form-control" id="customer_number" name = "customer_number" value="<?= $detail->customer_number?>">
-					<input type="hidden" class="form-control" id="project" name = "project" value="<?= $detail->project_code . '-' . $detail->project_code_sap?>">
+					<input type="hidden" class="form-control" id="project" name = "project" value="<?= $detail->project_code_sap?>">
 					<input type="hidden" class="form-control" id="ticket_id" name = "ticket_id" value="<?= $ticket_id?>">
 					<input type="hidden" class="form-control" id="time" name = "time" value="">
 					<input type="hidden" class="form-control" id="assign_to" name = "assign_to" value="">
@@ -94,12 +94,11 @@ function show_calendar(project){
 	    	var checkDay = new Date( moment(date, 'DD.MM.YYYY').format('dddd, MMMM D, YYYY'));
     		if (checkDay.getDay() != 6 || checkDay.getDay() != 0) { // weekdays only
     			dd = moment(date, 'DD.MM.YYYY').format('dddd, MMMM D, YYYY');
-	    	
 		        $('#modalTitle').html(dd);
 		        $('#selected_dt').val(moment(date).format('YYYY-MM-DD'));
 		        $.ajax({
 			      type: 'GET',
-			      url: "<?php echo base_url('admin/schedule_datetime'); ?>",
+			      url: "<?php echo base_url('default_user/schedule_datetime'); ?>",
 			      data: {
 			      	dt: moment(date).format('YYYY-MM-DD')
 			  		},
@@ -172,14 +171,13 @@ function check_availability(available,formData) {
 		url: "<?php echo base_url('default_user/onclickChange'); ?>",
 		data: {
 			dt: moment($('#selected_dt').val()).format('YYYY-MM-DD'),
-			project: $('#property').attr('data-input') ,
+			project: $('#project').val() ,
 			time : $(".custom-control-input:checked").val() ,
-			project_owner : $('#project_id').val()
+			project_owner : $('#project').val()
 		},
 		dataType:'json',
 		success: function(data){
 			$('#assign_to').val(data.assigned_to);
-			console.log(data);
 				 $('#for9').text(data.reserved1);
 				 $('#for11').text(data.reserved2);
 				 $('#for2').text(data.reserved3);
@@ -191,20 +189,21 @@ function check_availability(available,formData) {
 					$('.alert').remove();
 					$('#modalBody').append('<div class="alert alert-success alert-dismissible fade show" role="alert" id="modal_message"> <span id="modal_text">Slot will be reserved, do you wish to continue? </span><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'); 
 				} else {
-					// not available
-					//$(".custom-control span").html(data.avail);
 					$('#modalBtns').hide();
 					$('.alert').remove();
 					$('#modalBody').append('<div class="alert alert-danger alert-dismissible fade show" role="alert" id="modal_message"> <span id="modal_text">*NOT AVAILABLE* <br> Selected date and time will not be saved. Please select and confirm your preferred schedule.</span><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
 					// save first option date
-				 	$ajaxData = $.ajax({
-						url: "<?base_url('admin/add_schedule_logs') ?>",
+					$ajaxData = $.ajax({
+						url: "<?= base_url('admin/add_schedule_logs') ?>",
 						method: "POST",
-						data: {data : formData ,
-							customer_number : $('#customer_number').val()
-							},
+						data: {
+							data : formData ,
+							customer_number : $('#customer_number').val(),
+							assign_to : $('#assign_to').val() , 
+							project: $('#property').val()
+						},
 						success:function(data){
-							$('#modalBody').html(data);
+							//$('#modalBody').html(data);
 						},
 						beforeSend:function(){
 							$('.hidden-loader').show();
@@ -212,28 +211,12 @@ function check_availability(available,formData) {
 						complete:function(){
 							$('.hidden-loader').hide();
 						}
-					}); 
+					});
 			}
 			return available;
-			//END
 		}
 		});
 	
  }
 
- function distance_checker(date , project , time){
-	$.ajax({
-		type: 'GET',
-		url: "<?php echo base_url('default_user/onclickChange'); ?>",
-		data: {
-			dt: moment(date).format('YYYY-MM-DD'),
-			project: project ,
-			time : time 
-		},
-		dataType:'json',
-		success: function(data){
-			console.log(data);
-		}
-		});
- }
 </script>
