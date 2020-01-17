@@ -82,6 +82,7 @@ $route['admin/dashboard/Companies/:any/Towers/:any/Units/:any']['GET'] = 'Admin/
 */
 
 $route['TurnoverSchedule']['GET'] = 'TurnoverScheduleController/index';
+$route['TurnoverSchedule/{:any}']['GET'] = 'TurnoverScheduleController/show';
 
 //end
 
