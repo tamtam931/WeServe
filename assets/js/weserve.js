@@ -159,3 +159,46 @@ function check_auth(ajaxData){
 	}
 
 }
+
+var defaultValue = function(value){
+
+	let data = false;
+
+	let array_checker = Array.isArray(value);
+
+	if (array_checker) {
+
+		let filtered = value.filter(function (el) {
+
+		  return el != null;
+
+		});
+
+		data = filtered;
+	}
+
+	return data;
+}
+
+function autocompleter(data,elements){
+
+	let lists = ['No Data Found'];
+	let array_checker = Array.isArray(data);
+
+	if (array_checker) {
+
+		lists = defaultValue(data);
+
+	}
+
+ 	$(elements).autocomplete({
+
+ 		source: lists,
+ 		minLength: 0
+ 	}).focus(function(){
+
+    	$(this).autocomplete("search");
+    	
+	});	 
+
+}

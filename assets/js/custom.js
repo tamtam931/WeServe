@@ -13,6 +13,7 @@
 
 $(document).ready(function(){
 
+
 	/*
 		Modal - CRUD functions
 	*/
@@ -259,9 +260,35 @@ $(document).ready(function(){
 
 		const classTitle = $(this).attr('class').split(" ");
 		const btnClass = '.'+classTitle[0];
-		//show_calendar($(this).val())
+		
+		const data = {
 
-		console.log(btnClass);
+			params : $(this).val()
+		};
+		
+		const changeAjax = ajaxSubmit(uri,data,'',"GET");
+
+		changeAjax.done(function(data){
+
+			if (data.success == 'true') {
+
+				switch(data.key){
+
+					case 'autoCompleteTO':
+						autocompleter((data.units ? data.list['unit_number'] : ['No Data Found']),'#unit_number');
+						autocompleter((data.units ? data.list['parking_number'] : ['No Data Found']),'#parking_number');
+
+						show_calendar(data.project_tower);
+					default:
+					break;
+				}
+
+				
+
+			}
+
+		});
+		
 
 	});
 
