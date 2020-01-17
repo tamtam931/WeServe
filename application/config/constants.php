@@ -86,3 +86,17 @@ defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest auto
 
 defined('SAP_HOST')				OR define('SAP_HOST','vtrident.fedland.local:8000');
 defined('SAP_BASE_URI')			OR define('SAP_BASE_URI','/weserve/rest/v1/');
+
+/*
+	RUSH Interface constant variables
+	Author: Ben Zarmaynine E. Obra
+	Date: January 15, 2020
+	
+*/
+defined('RUSH_WS')				OR define('RUSH_WS', 'http://10.15.7.64/rushwebservice_dev/rushws.asmx');
+defined('RUSH_POST')			OR define('RUSH_POST', 'PostRequestFormUsingXmlString');
+defined('RUSH_SOAPACTION')		OR define('RUSH_SOAPACTION', 'http://tempuri.org/RushWebService/RUSHWS/');
+defined('RUSH_WESERVE_REQST_CD')	OR define('RUSH_WESERVE_REQST_CD', 'SCR_RSH_1219_02');
+defined('RUSH_WESERVE_WFLOW_CD')	OR define('RUSH_WESERVE_WFLOW_CD','1219_02_PL');
+defined('RUSH_WESERVE_PART_CD')		OR define('RUSH_WESERVE_PART_CD','1219_02');
+
